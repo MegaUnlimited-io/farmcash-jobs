@@ -22,7 +22,7 @@ export function AuthButton() {
   if (!user) {
     return (
       <a
-        href="https://farmcash.app/login/?login=true&next=https://farmcash.app/verify/?next=https://farmcash.app/jobs"
+        href="https://farmcash.app/login/?login=true&next=https://farmcash.app/jobs/auth/callback"
         className="text-xs font-medium text-muted hover:text-fg transition-colors bg-border/50 px-3 py-1.5 rounded-full"
       >
         Sign In

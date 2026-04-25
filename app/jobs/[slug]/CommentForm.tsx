@@ -16,7 +16,7 @@ export function CommentForm({ jobId, userId }: Props) {
     return (
       <p className="text-sm text-muted">
         <a
-          href="https://farmcash.app/login/?login=true&next=https://farmcash.app/verify/?next=https://farmcash.app/jobs"
+          href="https://farmcash.app/login/?login=true&next=https://farmcash.app/jobs/auth/callback"
           className="text-primary hover:underline"
         >
           Sign in
