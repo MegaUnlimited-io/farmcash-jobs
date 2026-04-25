@@ -1,26 +1,92 @@
 @import "tailwindcss";
 
+/*
+ * THEME — single source of truth for all visual configuration.
+ * Edit values in the :root block below to restyle the entire app.
+ * The @theme inline block is a mapping layer — only edit it to add new token categories.
+ */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* ── Brand colors ─────────────────────────────────────────── */
+  /* PLACEHOLDER values — replace with real FarmCash brand hex codes */
+  --fc-primary:         #16a34a;
+  --fc-primary-hover:   #15803d;
+  --fc-secondary:       #d97706;
+  --fc-secondary-hover: #b45309;
+
+  /* ── Surfaces (light mode) ────────────────────────────────── */
+  --fc-bg:     #ffffff;
+  --fc-fg:     #171717;
+  --fc-card:   #f9fafb;
+  --fc-border: #e5e7eb;
+  --fc-muted:  #6b7280;
+
+  /* ── Job status badge colors ──────────────────────────────── */
+  --fc-status-active:      #16a34a;
+  --fc-status-removed:     #9ca3af;
+  --fc-status-blacklisted: #dc2626;
+  --fc-status-seasonal:    #d97706;
+  --fc-status-review:      #6b7280;
+
+  /* ── Border radius scale ──────────────────────────────────── */
+  --fc-radius-sm:   0.375rem;
+  --fc-radius-md:   0.5rem;
+  --fc-radius-lg:   0.75rem;
+  --fc-radius-xl:   1rem;
+  --fc-radius-full: 9999px;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
+/* Dark mode — override surfaces only */
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --fc-bg:     #0a0a0a;
+    --fc-fg:     #ededed;
+    --fc-card:   #111111;
+    --fc-border: #262626;
+    --fc-muted:  #9ca3af;
   }
 }
 
+/*
+ * Tailwind token mapping.
+ * Exposes --fc-* vars as Tailwind utilities (bg-primary, text-secondary, rounded-md, etc.)
+ * and as CSS custom properties usable inline: var(--color-primary), var(--color-secondary).
+ */
+@theme inline {
+  /* Brand */
+  --color-primary:         var(--fc-primary);
+  --color-primary-hover:   var(--fc-primary-hover);
+  --color-secondary:       var(--fc-secondary);
+  --color-secondary-hover: var(--fc-secondary-hover);
+
+  /* Surfaces */
+  --color-background: var(--fc-bg);
+  --color-foreground: var(--fc-fg);
+  --color-card:       var(--fc-card);
+  --color-border:     var(--fc-border);
+  --color-muted:      var(--fc-muted);
+
+  /* Status */
+  --color-status-active:      var(--fc-status-active);
+  --color-status-removed:     var(--fc-status-removed);
+  --color-status-blacklisted: var(--fc-status-blacklisted);
+  --color-status-seasonal:    var(--fc-status-seasonal);
+  --color-status-review:      var(--fc-status-review);
+
+  /* Typography */
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  /* Radius */
+  --radius-sm:   var(--fc-radius-sm);
+  --radius-md:   var(--fc-radius-md);
+  --radius-lg:   var(--fc-radius-lg);
+  --radius-xl:   var(--fc-radius-xl);
+  --radius-full: var(--fc-radius-full);
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
 }
