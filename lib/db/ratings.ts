@@ -16,13 +16,14 @@ export function checkEligibility(user: User): {
 
 export interface RatingPayload {
   job_id: string;
-  overall_rating: number;
+  // overall_rating is omitted — computed by DB trigger from the 3 sub-dimensions
   ad_aggression: number | null;
   task_difficulty: number | null;
   payment_speed: number | null;
 }
 
 // Upserts a rating — one rating per user per job (unique constraint: job_id, user_id).
+// overall_rating is set automatically by the job_ratings_compute_overall trigger.
 export async function upsertRating(
   userId: string,
   payload: RatingPayload
@@ -34,7 +35,7 @@ export async function upsertRating(
   const values = {
     job_id: payload.job_id,
     user_id: userId,
-    overall_rating: payload.overall_rating,
+    // overall_rating intentionally omitted — trigger computes it from the 3 sub-dims
     ad_aggression: payload.ad_aggression,
     task_difficulty: payload.task_difficulty,
     payment_speed: payload.payment_speed,

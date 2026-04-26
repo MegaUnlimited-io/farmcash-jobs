@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
 interface Props {
   jobId: string;
@@ -8,13 +8,42 @@ interface Props {
 }
 
 const DIMENSIONS = [
-  { key: "overall_rating" as const, label: "Overall", required: true },
-  { key: "ad_aggression" as const, label: "Ads (fewer = better)", required: false },
-  { key: "task_difficulty" as const, label: "Ease (easier = better)", required: false },
-  { key: "payment_speed" as const, label: "Pay Speed", required: false },
+  { key: "ad_aggression" as const, label: "Ads (fewer = better)" },
+  { key: "task_difficulty" as const, label: "Ease (easier = better)" },
+  { key: "payment_speed" as const, label: "Pay Speed" },
 ];
 
 type DimensionKey = (typeof DIMENSIONS)[number]["key"];
+
+// ─── Partial star display ────────────────────────────────────────────────────
+// Two overlapping rows of ★ characters. The foreground row is clipped to
+// `(value / 5) * 100%` width so it fills exactly the right fraction.
+// CSS transition on width gives a spring-like animation as the value changes.
+
+function OverallStars({ value }: { value: number | null }) {
+  const pct = value !== null ? (value / 5) * 100 : 0;
+
+  return (
+    <div className="relative inline-flex select-none" aria-hidden>
+      {/* Background: empty stars */}
+      <span className="text-2xl leading-none tracking-tight text-border">
+        ★★★★★
+      </span>
+      {/* Foreground: filled stars, clipped to pct% */}
+      <span
+        className="absolute inset-0 overflow-hidden text-2xl leading-none tracking-tight text-[var(--color-secondary)] whitespace-nowrap"
+        style={{
+          width: `${pct}%`,
+          transition: "width 0.45s cubic-bezier(0.34, 1.56, 0.64, 1)",
+        }}
+      >
+        ★★★★★
+      </span>
+    </div>
+  );
+}
+
+// ─── Input star picker ────────────────────────────────────────────────────────
 
 function StarPicker({
   value,
@@ -53,15 +82,24 @@ function StarPicker({
   );
 }
 
+// ─── Main form ────────────────────────────────────────────────────────────────
+
 export function RatingForm({ jobId, userId }: Props) {
   const [ratings, setRatings] = useState<Record<DimensionKey, number | null>>({
-    overall_rating: null,
     ad_aggression: null,
     task_difficulty: null,
     payment_speed: null,
   });
   const [status, setStatus] = useState<"idle" | "loading" | "success">("idle");
   const [errorMsg, setErrorMsg] = useState("");
+
+  // Live overall preview — mirrors the DB trigger formula (avg of rated dims)
+  const overallValue = useMemo(() => {
+    const vals = [ratings.ad_aggression, ratings.task_difficulty, ratings.payment_speed]
+      .filter((v): v is number => v !== null);
+    if (vals.length === 0) return null;
+    return Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 10) / 10;
+  }, [ratings]);
 
   if (!userId) {
     return (
@@ -85,10 +123,12 @@ export function RatingForm({ jobId, userId }: Props) {
     );
   }
 
+  const hasAnyRating = Object.values(ratings).some((v) => v !== null);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!ratings.overall_rating) {
-      setErrorMsg("Overall rating is required.");
+    if (!hasAnyRating) {
+      setErrorMsg("Please rate at least one dimension.");
       return;
     }
     setStatus("loading");
@@ -112,12 +152,10 @@ export function RatingForm({ jobId, userId }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
-      {DIMENSIONS.map(({ key, label, required }) => (
+      {/* Sub-dimension pickers */}
+      {DIMENSIONS.map(({ key, label }) => (
         <div key={key} className="flex items-center justify-between gap-4">
-          <span className="text-sm text-fg shrink-0">
-            {label}
-            {required && <span className="text-primary ml-0.5">*</span>}
-          </span>
+          <span className="text-sm text-fg shrink-0">{label}</span>
           <StarPicker
             value={ratings[key]}
             onChange={(v) => setRatings((prev) => ({ ...prev, [key]: v }))}
@@ -125,11 +163,31 @@ export function RatingForm({ jobId, userId }: Props) {
         </div>
       ))}
 
+      {/* Overall preview — calculated, not editable */}
+      <div className="border-t border-border pt-3 mt-1">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <span className="text-sm font-semibold text-fg">Overall</span>
+            <span className="text-xs text-muted ml-1.5">calculated</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <OverallStars value={overallValue} />
+            <span
+              className={`text-sm font-bold tabular-nums w-8 text-right transition-colors duration-300 ${
+                overallValue !== null ? "text-[var(--color-secondary)]" : "text-border"
+              }`}
+            >
+              {overallValue !== null ? overallValue.toFixed(1) : "—"}
+            </span>
+          </div>
+        </div>
+      </div>
+
       {errorMsg && <p className="text-sm text-red-500">{errorMsg}</p>}
 
       <button
         type="submit"
-        disabled={status === "loading" || !ratings.overall_rating}
+        disabled={status === "loading" || !hasAnyRating}
         className="w-full py-2.5 rounded-xl bg-primary text-white font-semibold text-sm disabled:opacity-50 transition-opacity"
       >
         {status === "loading" ? "Saving…" : "Submit Rating"}

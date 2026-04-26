@@ -147,8 +147,9 @@ export type Database = {
       };
       job_ratings: {
         Row: JobRating;
-        Insert: Omit<JobRating, "id" | "created_at" | "updated_at"> & {
+        Insert: Omit<JobRating, "id" | "overall_rating" | "created_at" | "updated_at"> & {
           id?: string;
+          overall_rating?: number | null; // computed by trigger; omit on insert
           is_bot?: boolean;
           bot_name?: string | null;
           created_at?: string;

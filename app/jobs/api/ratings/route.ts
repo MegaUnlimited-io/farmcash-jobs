@@ -25,21 +25,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const { job_id, overall_rating, ad_aggression, task_difficulty, payment_speed } =
+  const { job_id, ad_aggression, task_difficulty, payment_speed } =
     body as Record<string, unknown>;
 
   if (typeof job_id !== "string" || !job_id) {
     return NextResponse.json({ error: "job_id required" }, { status: 400 });
-  }
-  if (
-    typeof overall_rating !== "number" ||
-    overall_rating < 1 ||
-    overall_rating > 5
-  ) {
-    return NextResponse.json(
-      { error: "overall_rating must be 1–5" },
-      { status: 400 }
-    );
   }
 
   const toRating = (v: unknown): number | null => {
@@ -48,14 +38,21 @@ export async function POST(request: Request) {
     return null;
   };
 
+  const dims = {
+    ad_aggression: toRating(ad_aggression),
+    task_difficulty: toRating(task_difficulty),
+    payment_speed: toRating(payment_speed),
+  };
+
+  if (!dims.ad_aggression && !dims.task_difficulty && !dims.payment_speed) {
+    return NextResponse.json(
+      { error: "At least one rating dimension is required" },
+      { status: 400 }
+    );
+  }
+
   try {
-    await upsertRating(user.id, {
-      job_id,
-      overall_rating,
-      ad_aggression: toRating(ad_aggression),
-      task_difficulty: toRating(task_difficulty),
-      payment_speed: toRating(payment_speed),
-    });
+    await upsertRating(user.id, { job_id, ...dims });
     revalidateTag(`ratings:${job_id}`, "hours");
     return NextResponse.json({ ok: true });
   } catch (err) {
