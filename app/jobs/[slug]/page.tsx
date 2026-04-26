@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { getJobBySlug, getRatingsSummary } from "@/lib/db/jobs";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createAnonClient } from "@/lib/supabase/server";
 import type { Metadata } from "next";
 import { JobIcon } from "@/components/JobIcon";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -21,12 +21,41 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const job = await getJobBySlug(slug);
   if (!job) return { title: "Job Not Found" };
+
+  const description =
+    job.description?.slice(0, 160) ??
+    `Community ratings for ${job.name} on FarmCash.`;
+
   return {
     title: job.name,
-    description:
-      job.description?.slice(0, 160) ??
-      `Community ratings for ${job.name} on FarmCash.`,
+    description,
+    alternates: { canonical: `/jobs/${job.slug}` },
+    openGraph: {
+      title: job.name,
+      description,
+      url: `/jobs/${job.slug}`,
+      siteName: "FarmCash Jobs",
+      type: "website",
+      ...(job.icon_url
+        ? { images: [{ url: job.icon_url, width: 512, height: 512, alt: job.name }] }
+        : {}),
+    },
+    twitter: {
+      card: "summary",
+      title: job.name,
+      description,
+      ...(job.icon_url ? { images: [job.icon_url] } : {}),
+    },
   };
+}
+
+export async function generateStaticParams() {
+  const supabase = createAnonClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data } = await (supabase.from("jobs") as any)
+    .select("slug")
+    .neq("status", "under_review");
+  return ((data ?? []) as Array<{ slug: string }>).map((j) => ({ slug: j.slug }));
 }
 
 // params is a runtime API with cacheComponents — must be inside <Suspense>.
@@ -57,8 +86,43 @@ async function JobDetailContent({ params }: Props) {
   const isRemoved = job.status === "partner_removed";
   const isBlacklisted = job.status === "blacklisted";
 
+  const description =
+    job.description?.slice(0, 160) ??
+    `Community ratings for ${job.name} on FarmCash.`;
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemPage",
+    name: job.name,
+    description,
+    url: `https://farmcash.app/jobs/${job.slug}`,
+    ...(job.icon_url ? { image: job.icon_url } : {}),
+    ...(summary && summary.avg_overall && summary.total_ratings > 0
+      ? {
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: summary.avg_overall.toFixed(1),
+            ratingCount: summary.total_ratings,
+            bestRating: "5",
+            worstRating: "1",
+          },
+        }
+      : {}),
+  };
+
+  // JSON.stringify escaping: replace <, >, & so the inline script can't break out.
+  const jsonLdString = JSON.stringify(jsonLd)
+    .replace(/</g, "\\u003c")
+    .replace(/>/g, "\\u003e")
+    .replace(/&/g, "\\u0026");
+
   return (
     <main className="min-h-screen bg-bg text-fg">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLdString }}
+      />
+
       {/* Back nav */}
       <div className="bg-card border-b border-border sticky top-0 z-10">
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
@@ -98,12 +162,15 @@ async function JobDetailContent({ params }: Props) {
                 )}
               </div>
               <div className="flex items-center gap-3 mt-3">
-                {job.payout_amount && (
-                  <span className="text-2xl font-bold text-primary">
-                    ${job.payout_amount.toFixed(2)}
+                {job.payout_max && job.payout_min && job.payout_min < job.payout_max ? (
+                  <span className="text-sm font-semibold text-muted">
+                    <SeedsChip seeds={job.payout_min} className="text-base inline-flex" />
+                    <span className="mx-1">–</span>
+                    <SeedsChip seeds={job.payout_max} className="text-base inline-flex" />
                   </span>
+                ) : (
+                  <SeedsChip seeds={job.payout_max} className="text-base" />
                 )}
-                <SeedsChip seeds={job.seeds_amount} className="text-base" />
               </div>
             </div>
           </div>
@@ -167,10 +234,10 @@ async function JobDetailContent({ params }: Props) {
                   </span>
                   <div>
                     <p className="text-sm font-medium text-fg">{task.name}</p>
-                    {task.payout_usd && (
-                      <p className="text-xs text-muted mt-0.5">
-                        ${task.payout_usd.toFixed(2)} reward
-                      </p>
+                    {task.payout_seeds > 0 && (
+                      <div className="mt-0.5">
+                        <SeedsChip seeds={task.payout_seeds} className="text-xs" />
+                      </div>
                     )}
                   </div>
                 </li>

@@ -17,7 +17,7 @@ export async function getJobs(): Promise<Job[]> {
     .from("jobs")
     .select("*")
     .neq("status", "under_review")
-    .order("payout_amount", { ascending: false });
+    .order("payout_max", { ascending: false });
 
   if (error) {
     console.error("[db/jobs] getJobs error:", error.message);
@@ -76,7 +76,7 @@ export async function getFeaturedJobs(): Promise<Job[]> {
     .select("*")
     .eq("status", "active")
     .not("icon_url", "is", null)
-    .order("payout_amount", { ascending: false })
+    .order("payout_max", { ascending: false })
     .limit(6);
 
   if (error) {

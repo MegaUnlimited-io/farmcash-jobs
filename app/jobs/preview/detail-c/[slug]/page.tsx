@@ -100,14 +100,7 @@ async function DetailVariantCContent({ params }: Props) {
             <p className="text-xs font-semibold uppercase tracking-wider text-muted mb-2">
               Reward
             </p>
-            {job.payout_amount ? (
-              <p className="text-4xl font-bold text-primary leading-none">
-                ${job.payout_amount.toFixed(2)}
-              </p>
-            ) : (
-              <p className="text-2xl font-bold text-muted leading-none">—</p>
-            )}
-            <SeedsChip seeds={job.seeds_amount} className="mt-2" />
+            <SeedsChip seeds={job.payout_max} className="mt-2 text-2xl" />
             {job.conversion_type && (
               <p className="text-xs uppercase tracking-wider text-muted mt-1">
                 {job.conversion_type}
@@ -174,8 +167,8 @@ async function DetailVariantCContent({ params }: Props) {
                   </span>
                   <div>
                     <p className="text-sm font-medium text-fg">{task.name}</p>
-                    {task.payout_usd && (
-                      <p className="text-xs text-muted mt-0.5">${task.payout_usd.toFixed(2)}</p>
+                    {task.payout_seeds > 0 && (
+                      <div className="mt-0.5"><SeedsChip seeds={task.payout_seeds} className="text-xs" /></div>
                     )}
                   </div>
                 </li>

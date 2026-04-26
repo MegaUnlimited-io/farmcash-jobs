@@ -45,12 +45,7 @@ export default async function ListingVariantA() {
                   <span className="text-xs text-center font-medium leading-snug line-clamp-2 text-fg">
                     {job.name}
                   </span>
-                  {job.payout_amount && (
-                    <span className="text-sm font-bold text-primary">
-                      ${job.payout_amount.toFixed(2)}
-                    </span>
-                  )}
-                  <SeedsChip seeds={job.seeds_amount} className="text-xs" />
+                  <SeedsChip seeds={job.payout_max} className="text-xs" />
                 </Link>
               ))}
             </div>
@@ -76,12 +71,7 @@ export default async function ListingVariantA() {
                     {job.name}
                   </p>
                   <div className="flex items-center gap-2 mt-1.5">
-                    {job.payout_amount && (
-                      <span className="font-bold text-primary text-sm">
-                        ${job.payout_amount.toFixed(2)}
-                      </span>
-                    )}
-                    <SeedsChip seeds={job.seeds_amount} className="text-xs" />
+                    <SeedsChip seeds={job.payout_max} className="text-xs" />
                   </div>
                 </div>
               </Link>

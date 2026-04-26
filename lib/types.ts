@@ -1,5 +1,5 @@
 // TypeScript types for the farmcash-jobs database schema.
-// Keep in sync with MIGRATION019 + MIGRATION020.
+// Keep in sync with MIGRATION021.
 // Regenerate with Supabase CLI once the project is linked:
 //   npx supabase gen types typescript --project-id <id> > lib/types.ts
 
@@ -17,35 +17,55 @@ export type ConversionType = "cpi" | "cpa" | "cpe" | "cpl";
 export interface CpeTask {
   id: string;
   name: string;
-  description?: string;
-  payout_usd?: number;
-  currency_amount?: number;
-  order?: number;
+  event_name?: string;
+  payout_seeds: number;   // Seeds reward for this task (0 = install-tracking step)
+  status?: string;
+  bonus_task?: boolean;
+  type?: string;
 }
 
+// jobs: one per app — the stable wiki entity, deduped by app_package_id.
+// payout_min/max are aggregated from active job_offers by the sync.
+// Any field in manual_overrides is skipped by the sync (manual value wins).
 export interface Job {
   id: string;
-  partner_id: string;
-  partner_offer_id: string;
-  name: string;
+  app_package_id: string | null;
   slug: string;
+  name: string;
   description: string | null;
   category: string | null;
-  ai_generated_content: string | null; // TEXT column in DB (enrichment pipeline writes JSON string)
+  ai_generated_content: string | null;
   icon_url: string | null;
   screenshots: string[] | null;
-  payout_amount: number | null;
-  app_package_id: string | null;
+  payout_min: number | null;  // Seeds — lowest active offer
+  payout_max: number | null;  // Seeds — highest active offer
+  conversion_type: ConversionType | null;
+  cpe_tasks: CpeTask[] | null;
+  manual_overrides: Record<string, unknown>;
   status: JobStatus;
-  // Fields added in MIGRATION020
-  seeds_amount: number | null;
+  enriched_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// job_offers: one per partner offer — dynamic, high-churn.
+// Many can point to the same job (same app, different partner or GEO split).
+export interface JobOffer {
+  id: string;
+  job_id: string | null;
+  partner_id: string;
+  partner_offer_id: string;
+  app_package_id: string | null;
+  name: string;
+  payout_amount: number | null;   // Seeds
   conversion_type: ConversionType | null;
   cpe_tasks: CpeTask[] | null;
   tracking_link_template: string | null;
-  // Sync tracking
-  last_seen_in_partner_api: string | null;
+  landing_page: string | null;
+  promote_to_wiki: boolean;
+  is_active: boolean;
   consecutive_missing_syncs: number;
-  enriched_at: string | null;
+  last_seen_in_partner_api: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -55,7 +75,6 @@ export interface JobRating {
   job_id: string;
   user_id: string;
   // 1–5; higher is always better for the user (see CLAUDE.md rating dimensions)
-  // Nullable in DB — only overall_rating is required at submission
   overall_rating: number | null;
   ad_aggression: number | null;
   task_difficulty: number | null;
@@ -95,7 +114,6 @@ export interface Admin {
   created_at: string;
 }
 
-// JobComment extended with job context — used in admin moderation views.
 export interface PendingComment extends JobComment {
   job_name: string;
   job_slug: string;
@@ -111,11 +129,20 @@ export type Database = {
         Row: Job;
         Insert: Omit<Job, "id" | "created_at" | "updated_at"> & {
           id?: string;
-          consecutive_missing_syncs?: number;
           created_at?: string;
           updated_at?: string;
         };
         Update: Partial<Omit<Job, "id" | "created_at">>;
+        Relationships: [];
+      };
+      job_offers: {
+        Row: JobOffer;
+        Insert: Omit<JobOffer, "id" | "created_at" | "updated_at"> & {
+          id?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Omit<JobOffer, "id" | "created_at">>;
         Relationships: [];
       };
       job_ratings: {
@@ -149,6 +176,12 @@ export type Database = {
         Row: Admin;
         Insert: Admin;
         Update: Partial<Admin>;
+        Relationships: [];
+      };
+      jobs_featured: {
+        Row: { job_id: string; display_order: number; created_at: string };
+        Insert: { job_id: string; display_order?: number; created_at?: string };
+        Update: Partial<{ display_order: number }>;
         Relationships: [];
       };
     };

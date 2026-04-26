@@ -46,9 +46,7 @@ export default async function ListingVariantB() {
                   <JobIcon name={job.name} iconUrl={job.icon_url} size={44} className="shrink-0" />
                   <div className="min-w-0">
                     <p className="text-sm font-semibold truncate text-fg">{job.name}</p>
-                    <p className="text-sm font-bold text-primary mt-0.5">
-                      {job.payout_amount ? `$${job.payout_amount.toFixed(2)}` : "—"}
-                    </p>
+                    <div className="mt-0.5"><SeedsChip seeds={job.payout_max} className="text-sm" /></div>
                   </div>
                 </Link>
               ))}
@@ -82,13 +80,8 @@ export default async function ListingVariantB() {
                     )}
                   </div>
                 </div>
-                <div className="text-right shrink-0 space-y-0.5">
-                  {job.payout_amount && (
-                    <p className="font-bold text-primary text-sm">
-                      ${job.payout_amount.toFixed(2)}
-                    </p>
-                  )}
-                  <SeedsChip seeds={job.seeds_amount} className="text-xs justify-end" />
+                <div className="text-right shrink-0">
+                  <SeedsChip seeds={job.payout_max} className="text-xs justify-end" />
                 </div>
               </Link>
             ))}

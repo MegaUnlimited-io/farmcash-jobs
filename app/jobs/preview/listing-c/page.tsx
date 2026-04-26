@@ -51,12 +51,7 @@ export default async function ListingVariantC() {
                   </p>
                 )}
                 <div className="flex items-center gap-3 mt-3">
-                  {hero.payout_amount && (
-                    <span className="text-xl font-bold text-primary">
-                      ${hero.payout_amount.toFixed(2)}
-                    </span>
-                  )}
-                  <SeedsChip seeds={hero.seeds_amount} />
+                  <SeedsChip seeds={hero.payout_max} />
                   <StatusBadge status={hero.status} />
                 </div>
               </div>
@@ -80,9 +75,7 @@ export default async function ListingVariantC() {
                   <JobIcon name={job.name} iconUrl={job.icon_url} size={48} className="shrink-0" />
                   <div className="min-w-0">
                     <p className="text-sm font-semibold truncate text-fg">{job.name}</p>
-                    <p className="text-sm font-bold text-primary mt-0.5">
-                      {job.payout_amount ? `$${job.payout_amount.toFixed(2)}` : "—"}
-                    </p>
+                    <div className="mt-0.5"><SeedsChip seeds={job.payout_max} className="text-sm" /></div>
                   </div>
                 </Link>
               ))}
@@ -116,11 +109,7 @@ export default async function ListingVariantC() {
                 <span className="text-xs text-center font-medium line-clamp-2 leading-tight text-fg">
                   {job.name}
                 </span>
-                {job.payout_amount && (
-                  <span className="text-xs font-bold text-primary">
-                    ${job.payout_amount.toFixed(2)}
-                  </span>
-                )}
+                <SeedsChip seeds={job.payout_max} className="text-xs" />
               </Link>
             ))}
           </div>

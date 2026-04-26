@@ -14,6 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://farmcash.app"),
   title: {
     default: "FarmCash Jobs",
     template: "%s | FarmCash Jobs",

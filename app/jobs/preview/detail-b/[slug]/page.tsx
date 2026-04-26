@@ -76,12 +76,7 @@ async function DetailVariantBContent({ params }: Props) {
                 )}
               </div>
               <div className="flex items-center gap-3 mt-2">
-                {job.payout_amount && (
-                  <span className="text-2xl font-bold text-primary">
-                    ${job.payout_amount.toFixed(2)}
-                  </span>
-                )}
-                <SeedsChip seeds={job.seeds_amount} />
+                <SeedsChip seeds={job.payout_max} />
               </div>
             </div>
           </div>
@@ -153,8 +148,8 @@ async function DetailVariantBContent({ params }: Props) {
                   </span>
                   <div>
                     <p className="text-sm font-medium text-fg">{task.name}</p>
-                    {task.payout_usd && (
-                      <p className="text-xs text-muted mt-0.5">${task.payout_usd.toFixed(2)} reward</p>
+                    {task.payout_seeds > 0 && (
+                      <div className="mt-0.5"><SeedsChip seeds={task.payout_seeds} className="text-xs" /></div>
                     )}
                   </div>
                 </li>

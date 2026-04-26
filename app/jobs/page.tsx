@@ -10,6 +10,23 @@ export const metadata: Metadata = {
   title: "Jobs",
   description:
     "Browse community-rated offers in the FarmCash app. Find the highest-paying, easiest jobs.",
+  alternates: {
+    canonical: "/jobs",
+  },
+  openGraph: {
+    title: "FarmCash Jobs",
+    description:
+      "Browse community-rated offers in the FarmCash app. Find the highest-paying, easiest jobs.",
+    url: "/jobs",
+    siteName: "FarmCash Jobs",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "FarmCash Jobs",
+    description:
+      "Browse community-rated offers in the FarmCash app. Find the highest-paying, easiest jobs.",
+  },
 };
 
 export default async function JobsPage() {
@@ -50,11 +67,7 @@ export default async function JobsPage() {
                   <span className="text-xs text-center font-medium leading-tight line-clamp-2 text-fg">
                     {job.name}
                   </span>
-                  {job.payout_amount && (
-                    <span className="text-xs font-bold text-primary">
-                      ${job.payout_amount.toFixed(2)}
-                    </span>
-                  )}
+                  <SeedsChip seeds={job.payout_max} className="text-xs" />
                 </Link>
               ))}
             </div>
@@ -85,15 +98,10 @@ export default async function JobsPage() {
                   </p>
                   <div className="flex items-center gap-2 mt-0.5">
                     <StatusBadge status={job.status} />
-                    <SeedsChip seeds={job.seeds_amount} className="text-xs" />
                   </div>
                 </div>
                 <div className="text-right shrink-0">
-                  {job.payout_amount && (
-                    <p className="font-bold text-primary text-sm">
-                      ${job.payout_amount.toFixed(2)}
-                    </p>
-                  )}
+                  <SeedsChip seeds={job.payout_max} className="text-sm" />
                 </div>
               </Link>
             ))}

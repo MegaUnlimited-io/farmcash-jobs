@@ -2,49 +2,53 @@ import type { PartnerAdapter, CanonicalOffer, CanonicalCpeTask } from "./types.t
 
 const BASE_URL = "https://www.ayetstudios.com";
 
-// Raw shapes returned by the AyeT API
-interface AyetTask {
+// Raw shapes from the AyeT Static API (confirmed against live response 2026-04-26)
+interface AyetCpeInstruction {
   uuid: string;
   name: string;
   event_name: string;
-  payout: number;
-  currency_amount: number;
-  status: string;
-  type?: string;
+  payout: number;         // Seeds reward for this task
+  payout_base: number;
+  status: string;         // "available" | "completed"
+  bonus_task: boolean;
+  type?: string;          // "normal" | "bonus"
+  currency?: string;
+}
+
+interface AyetTags {
+  tab?: string;
+  tasks?: string[];
+  categories?: string[];
 }
 
 interface AyetOffer {
   id: number;
-  name: string;
+  store_id?: string;      // app bundle ID (e.g. com.foo.bar) — absent on web offers
+  landing_page?: string;  // Play Store URL or web landing page
   icon: string;
-  description: string;
+  name: string;
+  description: string;    // "Earn X Seeds by completing..." — not useful for wiki
+  introduction?: string;  // Rich HTML about the app — use this for wiki description
+  tags?: AyetTags;
   conversion_type: string;
-  payout_usd: number;
+  payout: number;         // Seeds total for this offer
+  payout_base: number;
   currency_amount: number;
   screenshots: string[];
   tracking_link: string;
-  daily_cap: number;
+  daily_cap?: number;     // absent = no cap; 0 = cap exhausted (filter out)
   payment_required: boolean;
-  tasks?: AyetTask[];
+  cpe_instructions?: AyetCpeInstruction[];
 }
 
 interface AyetResponse {
   status: string;
   error?: string;
-  // Static API: offers at top level
   offers?: AyetOffer[];
   num_offers?: number;
-  // Offerwall API: offers nested (kept for reference, not used here)
-  offerwall?: {
-    offers: AyetOffer[];
-    num_offers: number;
-  };
 }
 
 export function createAyetAdapter(): PartnerAdapter {
-  // Static API key — adslot-specific, separate from the Publisher API key.
-  // Get it from AyeT dashboard → Placements → Edit Adslot → Static API Key.
-  // Requires account manager approval if not yet visible.
   const apiKey = Deno.env.get("AYET_STATIC_API_KEY");
   const adslotId = Deno.env.get("AYET_JOBS_ADSLOT_ID");
 
@@ -57,26 +61,20 @@ export function createAyetAdapter(): PartnerAdapter {
 
     async fetchOffers(): Promise<CanonicalOffer[]> {
       // Brackets must be unencoded — AyeT uses PHP array notation
-      const url =
-        `${BASE_URL}/offers/get/${adslotId}?apiKey=${apiKey}&platform[]=android`;
-
+      const url = `${BASE_URL}/offers/get/${adslotId}?apiKey=${apiKey}&platform[]=android`;
       const res = await fetch(url);
 
-      if (!res.ok) {
-        throw new Error(`AyeT Static API HTTP ${res.status}`);
-      }
+      if (!res.ok) throw new Error(`AyeT Static API HTTP ${res.status}`);
 
       const data: AyetResponse = await res.json();
-
       if (data.status !== "success") {
         throw new Error(`AyeT API error: ${data.error ?? "unknown"}`);
       }
 
-      // Static API returns offers at top level; Offerwall API nests under .offerwall
-      const offers = data.offers ?? data.offerwall?.offers ?? [];
-      console.log(`[ayetstudios] ${offers.length} offers before filtering (num_offers=${data.num_offers})`);
+      const offers = data.offers ?? [];
+      console.log(`[ayetstudios] ${offers.length} offers before filtering`);
 
-      // Filter out: offers with no remaining daily cap, and payment-required offers
+      // Filter: daily_cap === 0 means cap exhausted; payment_required = paid offers
       return offers
         .filter((o) => o.daily_cap !== 0 && !o.payment_required)
         .map(mapToCanonical);
@@ -85,32 +83,40 @@ export function createAyetAdapter(): PartnerAdapter {
 }
 
 function mapToCanonical(o: AyetOffer): CanonicalOffer {
-  const cpeTasks: CanonicalCpeTask[] | null =
-    o.tasks && o.tasks.length > 0
-      ? o.tasks.map((t) => ({
-          id: t.uuid,
-          name: t.name,
-          event_name: t.event_name,
-          payout_usd: t.payout,
-          currency_amount: t.currency_amount,
-          status: t.status,
-          type: t.type,
-        }))
-      : null;
-
   return {
     partner_id: "ayetstudios",
     partner_offer_id: String(o.id),
     name: o.name,
-    description: o.description || null,
+    description: stripHtml(o.introduction) || null,
     icon_url: o.icon || null,
-    conversion_type: (o.conversion_type as CanonicalOffer["conversion_type"]) ??
-      null,
-    payout_amount: o.payout_usd ?? null,
-    seeds_amount: o.currency_amount ?? null,
-    app_package_id: null, // Not in AyeT response; enrichment pipeline fills this
+    conversion_type: (o.conversion_type as CanonicalOffer["conversion_type"]) ?? null,
+    payout_amount: o.payout ?? null,
+    app_package_id: o.store_id || null,
     screenshots: o.screenshots?.length ? o.screenshots : null,
-    cpe_tasks: cpeTasks,
+    cpe_tasks: mapCpeTasks(o.cpe_instructions),
     tracking_link_template: o.tracking_link || null,
+    landing_page: o.landing_page || null,
+    categories: o.tags?.categories ?? null,
   };
+}
+
+function mapCpeTasks(instructions: AyetCpeInstruction[] | undefined): CanonicalCpeTask[] | null {
+  if (!instructions || instructions.length === 0) return null;
+  return instructions.map((t) => ({
+    id: t.uuid,
+    name: t.name,
+    event_name: t.event_name,
+    payout_seeds: t.payout,
+    status: t.status,
+    bonus_task: t.bonus_task,
+    type: t.type,
+  }));
+}
+
+function stripHtml(html: string | undefined): string {
+  if (!html) return "";
+  return html
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
