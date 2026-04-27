@@ -15,6 +15,7 @@ export interface JobSearchResult {
   slug: string;
   icon_url: string | null;
   status: JobStatus;
+  enriched_at: string | null;
 }
 
 // All functions here use the service role client (bypasses RLS).
@@ -163,7 +164,7 @@ export async function searchJobs(query: string): Promise<JobSearchResult[]> {
 
   const { data, error } = await supabase
     .from("jobs")
-    .select("id, name, slug, icon_url, status")
+    .select("id, name, slug, icon_url, status, enriched_at")
     .ilike("name", `%${query}%`)
     .order("name", { ascending: true })
     .limit(10);
@@ -233,4 +234,34 @@ export async function reorderFeatured(orderedJobIds: string[]): Promise<void> {
         .eq("job_id", jobId)
     )
   );
+}
+
+export async function updateJobStatus(
+  jobId: string,
+  status: JobStatus
+): Promise<{ slug: string } | { error: string }> {
+  const supabase = createServiceClient();
+
+  // Fetch the slug first so the caller can revalidate the job page.
+  const { data: job } = await supabase
+    .from("jobs")
+    .select("slug")
+    .eq("id", jobId)
+    .single();
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- partial select Row issue
+  const slug = (job as any)?.slug as string | undefined;
+  if (!slug) return { error: "Job not found" };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Update Row resolves to never
+  const { error } = await (supabase.from("jobs") as any)
+    .update({ status })
+    .eq("id", jobId);
+
+  if (error) {
+    console.error("[db/admin] updateJobStatus error:", error.message);
+    return { error: "Failed to update job status" };
+  }
+
+  return { slug };
 }

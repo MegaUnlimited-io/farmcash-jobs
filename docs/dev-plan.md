@@ -221,7 +221,7 @@ _Adds curation and moderation tools to the existing `/jobs/admin` panel. Work th
   - One-click remove from featured
   - Max 6 slots enforced (mirrors `getFeaturedJobs()` limit)
 
-- [ ] 10.3 **Job status changer** — searchable job list with inline status dropdown.
+- [x] 10.3 **Job status changer** — searchable job list with inline status dropdown.
   - Shows: job name, current status, last enriched date
   - Dropdown: active / partner_removed / blacklisted / seasonal / under_review
   - On change: PATCH jobs row + call `/api/revalidate?slug={slug}` to bust page cache immediately

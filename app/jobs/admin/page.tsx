@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { isAdmin, getPendingComments, getAdminStats, getFeaturedList } from "@/lib/db/admin";
 import { ModerationList } from "./ModerationList";
 import { FeaturedManager } from "./FeaturedManager";
+import { JobStatusManager } from "./JobStatusManager";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -70,6 +71,11 @@ async function AdminContent() {
         {/* ── Featured jobs ── */}
         <section className="bg-card border border-border rounded-xl p-4">
           <FeaturedManager initialList={featuredList} />
+        </section>
+
+        {/* ── Job status ── */}
+        <section className="bg-card border border-border rounded-xl p-4">
+          <JobStatusManager />
         </section>
 
         <section>
