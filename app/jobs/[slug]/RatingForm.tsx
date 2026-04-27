@@ -5,6 +5,7 @@ import { useState, useMemo } from "react";
 interface Props {
   jobId: string;
   userId: string | null;
+  onSuccess?: () => void;
 }
 
 const DIMENSIONS = [
@@ -85,7 +86,7 @@ function StarPicker({
 
 // ─── Main form ────────────────────────────────────────────────────────────────
 
-export function RatingForm({ jobId, userId }: Props) {
+export function RatingForm({ jobId, userId, onSuccess }: Props) {
   const [ratings, setRatings] = useState<Record<DimensionKey, number | null>>({
     ad_aggression: null,
     task_difficulty: null,
@@ -145,6 +146,7 @@ export function RatingForm({ jobId, userId }: Props) {
         throw new Error(data.error ?? "Something went wrong");
       }
       setStatus("success");
+      onSuccess?.();
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : "Something went wrong");
       setStatus("idle");

@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { getJobBySlug, getRatingsSummary } from "@/lib/db/jobs";
+import { getUserRating } from "@/lib/db/ratings";
 import { createClient, createAnonClient } from "@/lib/supabase/server";
 import type { Metadata } from "next";
 import { JobIcon } from "@/components/JobIcon";
@@ -81,6 +82,8 @@ async function JobDetailContent({ params }: Props) {
     data: { user },
   } = await supabase.auth.getUser();
   const userId = user?.id ?? null;
+
+  const hasRated = userId ? !!(await getUserRating(job.id, userId)) : false;
 
   const showCTA = job.status === "active";
   const isRemoved = job.status === "partner_removed";
@@ -294,7 +297,7 @@ async function JobDetailContent({ params }: Props) {
         {/* ── Rate this offer (expandable, subordinate to CTA) ── */}
         <section className="bg-card border border-border rounded-2xl p-5">
           <h2 className="font-semibold text-fg mb-4">Rate this Offer</h2>
-          <RatingSection jobId={job.id} userId={userId} />
+          <RatingSection jobId={job.id} userId={userId} hasRated={hasRated} />
         </section>
 
         {/* ── Community comments ── */}

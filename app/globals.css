@@ -90,3 +90,47 @@ body {
   color: var(--color-foreground);
   font-family: var(--font-sans);
 }
+
+/*
+ * Button utility classes — single source of truth for reusable button styles.
+ * Edit here to restyle across the app without touching components.
+ */
+
+/* Primary CTA — filled green. Reserved for the top-priority action on any page. */
+.btn-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--fc-radius-xl);
+  background: var(--fc-primary);
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: background-color 0.15s;
+  cursor: pointer;
+}
+.btn-primary:hover  { background: var(--fc-primary-hover); }
+.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* Secondary CTA — outlined green. For secondary actions (Rate, Edit, etc.)
+   Clearly visible but visually subordinate to .btn-primary. */
+.btn-secondary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 0.625rem 1rem;
+  border-radius: var(--fc-radius-xl);
+  border: 1.5px solid var(--fc-primary);
+  color: var(--fc-primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  background: transparent;
+  transition: background-color 0.15s, color 0.15s;
+  cursor: pointer;
+}
+.btn-secondary:hover  { background: var(--fc-primary); color: #fff; }
+.btn-secondary:active { background: var(--fc-primary-hover); color: #fff; }
+.btn-secondary:disabled { opacity: 0.5; cursor: not-allowed; }

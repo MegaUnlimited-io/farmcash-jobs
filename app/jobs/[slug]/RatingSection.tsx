@@ -6,13 +6,18 @@ import { RatingForm } from "./RatingForm";
 interface Props {
   jobId: string;
   userId: string | null;
+  hasRated: boolean;
 }
 
 const LOGIN_URL =
   "https://farmcash.app/login/?login=true&next=https://farmcash.app/jobs/auth/callback";
 
-export function RatingSection({ jobId, userId }: Props) {
+export function RatingSection({ jobId, userId, hasRated }: Props) {
   const [open, setOpen] = useState(false);
+  // Track whether the user submitted during this session
+  const [submitted, setSubmitted] = useState(false);
+
+  const alreadyRated = hasRated || submitted;
 
   if (!userId) {
     return (
@@ -27,17 +32,25 @@ export function RatingSection({ jobId, userId }: Props) {
 
   return (
     <div>
-      {/* Trigger — visually subordinate to the CTA button */}
+      {/* Collapsed trigger */}
       {!open && (
-        <button
-          onClick={() => setOpen(true)}
-          className="w-full py-2.5 rounded-xl border border-border text-sm font-medium text-muted hover:text-fg hover:border-primary/40 transition-colors"
-        >
-          ★ Rate this offer
-        </button>
+        alreadyRated ? (
+          // Post-rating: small unobtrusive link
+          <button
+            onClick={() => setOpen(true)}
+            className="text-sm text-muted hover:text-primary transition-colors underline-offset-2 hover:underline"
+          >
+            Edit my rating
+          </button>
+        ) : (
+          // Pre-rating: secondary CTA button — visible but subordinate to primary CTA
+          <button onClick={() => setOpen(true)} className="btn-secondary">
+            ★ Rate this offer
+          </button>
+        )
       )}
 
-      {/* Expandable form — CSS grid trick animates height: 0 → auto */}
+      {/* Expandable form — grid trick animates height 0 → auto */}
       <div
         className={`grid transition-[grid-template-rows] duration-300 ease-out ${
           open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
@@ -46,7 +59,9 @@ export function RatingSection({ jobId, userId }: Props) {
         <div className="overflow-hidden">
           <div className="pt-1">
             <div className="flex items-center justify-between mb-4">
-              <span className="text-sm font-semibold text-fg">Your Rating</span>
+              <span className="text-sm font-semibold text-fg">
+                {alreadyRated ? "Update your rating" : "Your rating"}
+              </span>
               <button
                 onClick={() => setOpen(false)}
                 className="text-xs text-muted hover:text-fg transition-colors"
@@ -54,7 +69,11 @@ export function RatingSection({ jobId, userId }: Props) {
                 Cancel
               </button>
             </div>
-            <RatingForm jobId={jobId} userId={userId} />
+            <RatingForm
+              jobId={jobId}
+              userId={userId}
+              onSuccess={() => setSubmitted(true)}
+            />
           </div>
         </div>
       </div>

@@ -1,6 +1,19 @@
 import { createClient } from "@/lib/supabase/server";
-import type { Database } from "@/lib/types";
+import type { Database, JobRating } from "@/lib/types";
 import type { User } from "@supabase/supabase-js";
+
+// Returns the current user's existing rating for a job, or null if they haven't rated yet.
+export async function getUserRating(jobId: string, userId: string): Promise<JobRating | null> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("job_ratings")
+    .select("*")
+    .eq("job_id", jobId)
+    .eq("user_id", userId)
+    .eq("is_bot", false)
+    .maybeSingle();
+  return (data as JobRating | null) ?? null;
+}
 
 // Phase 1 eligibility: email-verified users only.
 // Phase 2 will add job_completions check (see CLAUDE.md).
