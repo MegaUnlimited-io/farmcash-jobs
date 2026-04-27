@@ -98,7 +98,7 @@ export function JobsListing({ jobs, featured, ratingsById }: Props) {
         {/* ── Search results ── */}
         {isSearching && (
           <section>
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted mb-3">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted tabular-nums mb-3">
               {searchResults!.length > 0
                 ? `${searchResults!.length} result${searchResults!.length === 1 ? "" : "s"}`
                 : "No results"}

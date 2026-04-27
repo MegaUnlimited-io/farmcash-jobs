@@ -85,6 +85,12 @@
   --radius-full: var(--fc-radius-full);
 }
 
+html {
+  /* Reserve scrollbar space permanently so the layout never shifts
+     when a scrollbar appears or disappears (e.g. during search filtering). */
+  scrollbar-gutter: stable;
+}
+
 body {
   background: var(--color-background);
   color: var(--color-foreground);
