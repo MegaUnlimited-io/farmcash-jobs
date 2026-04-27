@@ -73,7 +73,7 @@ export interface JobOffer {
 export interface JobRating {
   id: string;
   job_id: string;
-  user_id: string;
+  user_id: string | null;  // null for bot-generated ratings (see MIGRATION022)
   // 1–5; higher is always better for the user (see CLAUDE.md rating dimensions)
   overall_rating: number | null;
   ad_aggression: number | null;
@@ -88,7 +88,7 @@ export interface JobRating {
 export interface JobComment {
   id: string;
   job_id: string;
-  user_id: string;
+  user_id: string | null;  // null for bot-generated comments (see MIGRATION022)
   content: string;
   is_guide: boolean;
   is_pinned: boolean;

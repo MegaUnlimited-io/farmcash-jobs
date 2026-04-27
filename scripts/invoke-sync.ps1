@@ -60,7 +60,7 @@ function Show-Stats {
 
     try {
         $jobs = Invoke-RestMethod `
-            -Uri    "$baseUrl/rest/v1/jobs?select=id,status,partner_id" `
+            -Uri    "$baseUrl/rest/v1/jobs?select=id,status,enriched_at" `
             -Method GET `
             -Headers $headers
 
@@ -69,14 +69,12 @@ function Show-Stats {
             return
         }
 
-        Write-Host "  Total rows: $($jobs.Count)" -ForegroundColor Green
-        Write-Host ""
+        $enriched   = ($jobs | Where-Object { $_.enriched_at }).Count
+        $unenriched = $jobs.Count - $enriched
 
-        Write-Host "  By partner:" -ForegroundColor White
-        $jobs | Group-Object partner_id | Sort-Object Count -Descending | ForEach-Object {
-            Write-Host "    $($_.Name): $($_.Count)"
-        }
-
+        Write-Host "  Total jobs:  $($jobs.Count)" -ForegroundColor Green
+        Write-Host "  Enriched:    $enriched" -ForegroundColor Green
+        Write-Host "  Unenriched:  $unenriched" -ForegroundColor Yellow
         Write-Host ""
         Write-Host "  By status:" -ForegroundColor White
         $jobs | Group-Object status | Sort-Object Count -Descending | ForEach-Object {
@@ -98,15 +96,41 @@ function Show-Stats {
 
 # ── Menu ─────────────────────────────────────────────────────────
 
+function Invoke-Enrich {
+    param(
+        [string]$ExtraFlags = ""
+    )
+    Write-Host ""
+    Write-Host "  Starting enrichment..." -ForegroundColor Cyan
+    Write-Host "  (Ctrl+C to cancel)" -ForegroundColor DarkGray
+    Write-Host ""
+
+    $nodeArgs = "--env-file=.env.local scripts/enrich-jobs.mjs $ExtraFlags"
+    try {
+        $repoRoot = Split-Path $PSScriptRoot -Parent
+        Push-Location $repoRoot
+        Invoke-Expression "node $nodeArgs"
+        Pop-Location
+    }
+    catch {
+        Write-Host "  Error: $_" -ForegroundColor Red
+        Pop-Location
+    }
+}
+
 function Show-Menu {
     Write-Host ""
-    Write-Host "  ╔════════════════════════════════╗" -ForegroundColor Cyan
-    Write-Host "  ║   sync-jobs  ·  Test Tool      ║" -ForegroundColor Cyan
-    Write-Host "  ╠════════════════════════════════╣" -ForegroundColor Cyan
-    Write-Host "  ║  1  Trigger manual sync        ║"
-    Write-Host "  ║  2  Jobs table stats           ║"
-    Write-Host "  ║  3  Exit                       ║"
-    Write-Host "  ╚════════════════════════════════╝" -ForegroundColor Cyan
+    Write-Host "  ╔════════════════════════════════════════╗" -ForegroundColor Cyan
+    Write-Host "  ║   FarmCash Jobs  ·  Admin Tools        ║" -ForegroundColor Cyan
+    Write-Host "  ╠════════════════════════════════════════╣" -ForegroundColor Cyan
+    Write-Host "  ║  1  Trigger manual sync                ║"
+    Write-Host "  ║  2  Jobs table stats                   ║"
+    Write-Host "  ║  3  Enrich unenriched jobs (limit 20)  ║"
+    Write-Host "  ║  4  Enrich specific job (by UUID)      ║"
+    Write-Host "  ║  5  Enrich specific job (by package)   ║"
+    Write-Host "  ║  6  Dry-run enrichment (no DB writes)  ║"
+    Write-Host "  ║  7  Exit                               ║"
+    Write-Host "  ╚════════════════════════════════════════╝" -ForegroundColor Cyan
     Write-Host ""
 }
 
@@ -115,10 +139,20 @@ while ($true) {
     $choice = Read-Host "  Select"
 
     switch ($choice.Trim()) {
-        "1" { Invoke-Sync  }
-        "2" { Show-Stats   }
-        "3" { exit 0       }
-        default { Write-Host "  Invalid option — enter 1, 2, or 3." -ForegroundColor Yellow }
+        "1" { Invoke-Sync }
+        "2" { Show-Stats }
+        "3" { Invoke-Enrich }
+        "4" {
+            $id = Read-Host "  Job UUID"
+            Invoke-Enrich "--job $id --force"
+        }
+        "5" {
+            $pkg = Read-Host "  app_package_id (e.g. com.example.app)"
+            Invoke-Enrich "--package $pkg --force"
+        }
+        "6" { Invoke-Enrich "--dry-run --limit 3" }
+        "7" { exit 0 }
+        default { Write-Host "  Invalid option." -ForegroundColor Yellow }
     }
 
     Write-Host ""

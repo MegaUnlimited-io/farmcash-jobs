@@ -7,7 +7,7 @@ interface Props {
 
 function displayName(comment: JobComment): string {
   if (comment.is_bot && comment.bot_name) return comment.bot_name;
-  return `User ${comment.user_id.slice(0, 6)}`;
+  return comment.user_id ? `User ${comment.user_id.slice(0, 6)}` : "Anonymous";
 }
 
 function formatDate(iso: string): string {

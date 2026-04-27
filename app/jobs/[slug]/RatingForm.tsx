@@ -8,12 +8,13 @@ interface Props {
 }
 
 const DIMENSIONS = [
-  { key: "ad_aggression" as const, label: "Ads (fewer = better)" },
-  { key: "task_difficulty" as const, label: "Ease (easier = better)" },
-  { key: "payment_speed" as const, label: "Pay Speed" },
+  { key: "ad_aggression" as const,  label: "Ad Aggression",  hint: "1 = very aggressive · 5 = no ads"    },
+  { key: "task_difficulty" as const, label: "Task Difficulty", hint: "1 = grind · 5 = easy money"          },
+  { key: "payment_speed" as const,  label: "Payment Speed",  hint: "1 = long delays · 5 = instant"        },
 ];
 
 type DimensionKey = (typeof DIMENSIONS)[number]["key"];
+type Dimension = (typeof DIMENSIONS)[number];
 
 // ─── Partial star display ────────────────────────────────────────────────────
 // Two overlapping rows of ★ characters. The foreground row is clipped to
@@ -153,9 +154,12 @@ export function RatingForm({ jobId, userId }: Props) {
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
       {/* Sub-dimension pickers */}
-      {DIMENSIONS.map(({ key, label }) => (
+      {DIMENSIONS.map(({ key, label, hint }: Dimension) => (
         <div key={key} className="flex items-center justify-between gap-4">
-          <span className="text-sm text-fg shrink-0">{label}</span>
+          <div className="shrink-0">
+            <span className="text-sm text-fg">{label}</span>
+            <p className="text-xs text-muted">{hint}</p>
+          </div>
           <StarPicker
             value={ratings[key]}
             onChange={(v) => setRatings((prev) => ({ ...prev, [key]: v }))}

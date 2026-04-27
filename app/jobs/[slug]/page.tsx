@@ -6,8 +6,9 @@ import { JobIcon } from "@/components/JobIcon";
 import { StatusBadge } from "@/components/StatusBadge";
 import { SeedsChip } from "@/components/SeedsChip";
 import { CTAButton } from "@/components/CTAButton";
-import { RatingsSummary } from "@/components/RatingsSummary";
-import { RatingForm } from "./RatingForm";
+import { StarRating } from "@/components/StarRating";
+import { RatingBar } from "@/components/RatingBar";
+import { RatingSection } from "./RatingSection";
 import { CommentForm } from "./CommentForm";
 import { CommentsList } from "./CommentsList";
 import Link from "next/link";
@@ -58,7 +59,6 @@ export async function generateStaticParams() {
   return ((data ?? []) as Array<{ slug: string }>).map((j) => ({ slug: j.slug }));
 }
 
-// params is a runtime API with cacheComponents — must be inside <Suspense>.
 export default function JobDetailPage({ params }: Props) {
   return (
     <Suspense fallback={<main className="min-h-screen bg-bg" />}>
@@ -85,6 +85,7 @@ async function JobDetailContent({ params }: Props) {
   const showCTA = job.status === "active";
   const isRemoved = job.status === "partner_removed";
   const isBlacklisted = job.status === "blacklisted";
+  const hasRatings = summary && summary.total_ratings > 0;
 
   const description =
     job.description?.slice(0, 160) ??
@@ -110,7 +111,6 @@ async function JobDetailContent({ params }: Props) {
       : {}),
   };
 
-  // JSON.stringify escaping: replace <, >, & so the inline script can't break out.
   const jsonLdString = JSON.stringify(jsonLd)
     .replace(/</g, "\\u003c")
     .replace(/>/g, "\\u003e")
@@ -123,18 +123,19 @@ async function JobDetailContent({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: jsonLdString }}
       />
 
-      {/* Back nav */}
+      {/* Sticky nav */}
       <div className="bg-card border-b border-border sticky top-0 z-10">
-        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
-          <Link href="/jobs" className="text-muted hover:text-fg transition-colors text-sm">
+        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center gap-2 min-w-0">
+          <Link href="/jobs" className="text-muted hover:text-fg transition-colors text-sm shrink-0">
             ← Jobs
           </Link>
-          <span className="text-muted">/</span>
-          <span className="text-sm font-medium truncate text-fg">{job.name}</span>
+          <span className="text-border">/</span>
+          <span className="text-sm text-muted truncate">{job.name}</span>
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto px-4 py-6 space-y-4">
+      <div className="max-w-2xl mx-auto px-4 py-8 space-y-5">
+
         {/* Status notices */}
         {isBlacklisted && (
           <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 text-sm text-red-700 dark:text-red-400">
@@ -147,82 +148,109 @@ async function JobDetailContent({ params }: Props) {
           </div>
         )}
 
-        {/* Hero card */}
-        <div className="bg-card border border-border rounded-2xl p-5">
-          <div className="flex gap-4">
-            <JobIcon name={job.name} iconUrl={job.icon_url} size={80} className="shrink-0" />
-            <div className="flex-1 min-w-0">
-              <h1 className="text-xl font-bold leading-tight text-fg">{job.name}</h1>
-              <div className="flex flex-wrap items-center gap-2 mt-2">
-                <StatusBadge status={job.status} />
-                {job.conversion_type && (
-                  <span className="text-xs font-medium uppercase tracking-wider text-muted">
-                    {job.conversion_type}
-                  </span>
-                )}
-              </div>
-              <div className="flex items-center gap-3 mt-3">
-                {job.payout_max && job.payout_min && job.payout_min < job.payout_max ? (
-                  <span className="text-sm font-semibold text-muted">
-                    <SeedsChip seeds={job.payout_min} className="text-base inline-flex" />
-                    <span className="mx-1">–</span>
-                    <SeedsChip seeds={job.payout_max} className="text-base inline-flex" />
-                  </span>
-                ) : (
-                  <SeedsChip seeds={job.payout_max} className="text-base" />
-                )}
-              </div>
+        {/* ── Hero — App Store style ── */}
+        <div className="flex flex-col items-center text-center gap-3 pt-2">
+          <JobIcon name={job.name} iconUrl={job.icon_url} size={100} />
+
+          <div>
+            <h1 className="text-2xl font-bold text-fg">{job.name}</h1>
+            <div className="flex items-center justify-center gap-2 mt-1.5 flex-wrap">
+              <StatusBadge status={job.status} />
+              {job.conversion_type && (
+                <span className="text-xs uppercase tracking-wider text-muted">
+                  {job.conversion_type}
+                </span>
+              )}
             </div>
           </div>
 
+          {/* Rating — shown under name, app-store style */}
+          {hasRatings ? (
+            <div className="flex flex-col items-center gap-0.5">
+              <StarRating rating={summary.avg_overall ?? 0} size="lg" />
+              {summary.human_ratings > 0 ? (
+                <span className="text-xs text-muted">
+                  {summary.human_ratings}{" "}
+                  {summary.human_ratings === 1 ? "rating" : "ratings"}
+                </span>
+              ) : (
+                <span className="text-xs text-muted italic">
+                  AI estimate · be the first to rate!
+                </span>
+              )}
+            </div>
+          ) : (
+            <p className="text-xs text-muted italic">No ratings yet</p>
+          )}
+
+          {/* Payout */}
+          <div className="flex items-center gap-2">
+            {job.payout_max && job.payout_min && job.payout_min < job.payout_max ? (
+              <>
+                <SeedsChip seeds={job.payout_min} className="text-base" />
+                <span className="text-muted text-sm">–</span>
+                <SeedsChip seeds={job.payout_max} className="text-base" />
+              </>
+            ) : (
+              <SeedsChip seeds={job.payout_max} className="text-base" />
+            )}
+          </div>
+
+          {/* PRIMARY CTA */}
           {showCTA && (
-            <div className="mt-4">
+            <div className="w-full max-w-xs">
               <CTAButton />
             </div>
           )}
         </div>
 
-        {/* Community rating summary */}
-        <section className="bg-card border border-border rounded-2xl p-5">
-          <h2 className="font-semibold text-fg mb-4">Community Rating</h2>
-          <RatingsSummary summary={summary} />
-        </section>
+        {/* ── Metrics grid ── */}
+        {hasRatings && (
+          <div className="grid grid-cols-3 gap-px bg-border rounded-2xl overflow-hidden">
+            {[
+              { label: "Ads",        value: summary.avg_ad_aggression  },
+              { label: "Ease",       value: summary.avg_task_difficulty },
+              { label: "Pay Speed",  value: summary.avg_payment_speed  },
+            ].map(({ label, value }) => (
+              <div key={label} className="bg-card p-4 text-center">
+                <p className="text-2xl font-bold text-fg">
+                  {value?.toFixed(1) ?? "—"}
+                </p>
+                <p className="text-xs text-muted mt-0.5">{label}</p>
+              </div>
+            ))}
+          </div>
+        )}
 
-        {/* Rate this offer */}
-        <section className="bg-card border border-border rounded-2xl p-5">
-          <h2 className="font-semibold text-fg mb-4">Rate this Offer</h2>
-          <RatingForm jobId={job.id} userId={userId} />
-        </section>
-
-        {/* Screenshots */}
+        {/* ── Screenshots ── */}
         {job.screenshots && job.screenshots.length > 0 && (
-          <section className="bg-card border border-border rounded-2xl p-5">
+          <section>
             <h2 className="font-semibold text-fg mb-3">Screenshots</h2>
-            <div className="flex gap-3 overflow-x-auto pb-2 snap-x -mx-1 px-1">
+            <div className="flex gap-3 overflow-x-auto pb-2 snap-x -mx-4 px-4">
               {job.screenshots.map((url, i) => (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   key={i}
                   src={url}
                   alt={`${job.name} screenshot ${i + 1}`}
-                  className="h-64 w-auto rounded-xl object-cover flex-shrink-0 snap-start border border-border"
+                  className="h-56 w-auto rounded-xl object-cover flex-shrink-0 snap-start border border-border"
                 />
               ))}
             </div>
           </section>
         )}
 
-        {/* Description */}
+        {/* ── About ── */}
         {job.description && (
           <section className="bg-card border border-border rounded-2xl p-5">
-            <h2 className="font-semibold text-fg mb-3">About this Offer</h2>
+            <h2 className="font-semibold text-fg mb-2">About this Offer</h2>
             <p className="text-sm text-muted leading-relaxed whitespace-pre-line">
               {job.description}
             </p>
           </section>
         )}
 
-        {/* CPE Tasks */}
+        {/* ── Tasks to complete ── */}
         {job.cpe_tasks && job.cpe_tasks.length > 0 && (
           <section className="bg-card border border-border rounded-2xl p-5">
             <h2 className="font-semibold text-fg mb-3">Tasks to Complete</h2>
@@ -246,7 +274,30 @@ async function JobDetailContent({ params }: Props) {
           </section>
         )}
 
-        {/* Community comments */}
+        {/* ── Community ratings detail ── */}
+        {hasRatings && (
+          <section className="bg-card border border-border rounded-2xl p-5">
+            <h2 className="font-semibold text-fg mb-4">Community Ratings</h2>
+            <div className="space-y-3">
+              <RatingBar label="Ads"       value={summary.avg_ad_aggression}  />
+              <RatingBar label="Ease"      value={summary.avg_task_difficulty} />
+              <RatingBar label="Pay Speed" value={summary.avg_payment_speed}   />
+            </div>
+            <p className="text-xs text-muted mt-4">
+              {summary.human_ratings > 0
+                ? `Based on ${summary.human_ratings} community ${summary.human_ratings === 1 ? "rating" : "ratings"}`
+                : "AI estimate — community ratings coming soon"}
+            </p>
+          </section>
+        )}
+
+        {/* ── Rate this offer (expandable, subordinate to CTA) ── */}
+        <section className="bg-card border border-border rounded-2xl p-5">
+          <h2 className="font-semibold text-fg mb-4">Rate this Offer</h2>
+          <RatingSection jobId={job.id} userId={userId} />
+        </section>
+
+        {/* ── Community comments ── */}
         <section className="bg-card border border-border rounded-2xl p-5 space-y-5">
           <div>
             <h2 className="font-semibold text-fg mb-4">Community Comments</h2>
@@ -263,6 +314,7 @@ async function JobDetailContent({ params }: Props) {
             <CommentForm jobId={job.id} userId={userId} />
           </div>
         </section>
+
       </div>
     </main>
   );
