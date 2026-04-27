@@ -212,8 +212,8 @@ async function JobDetailContent({ params }: Props) {
           <div className="grid grid-cols-3 gap-px bg-border rounded-2xl overflow-hidden">
             {[
               { label: "Ads",        value: summary.avg_ad_aggression  },
-              { label: "Ease",       value: summary.avg_task_difficulty },
-              { label: "Pay Speed",  value: summary.avg_payment_speed  },
+              { label: "Tasks Difficulty",       value: summary.avg_task_difficulty },
+              { label: "Payment Speed",  value: summary.avg_payment_speed  },
             ].map(({ label, value }) => (
               <div key={label} className="bg-card p-4 text-center">
                 <p className="text-2xl font-bold text-fg">
