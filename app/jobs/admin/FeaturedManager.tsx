@@ -59,7 +59,7 @@ export function FeaturedManager({ initialList }: Props) {
       const nextOrder = (featured[featured.length - 1]?.display_order ?? 0) + 1;
       setFeatured((prev) => [
         ...prev,
-        { job_id: job.id, display_order: nextOrder, job_name: job.name, job_slug: job.slug, job_icon_url: job.icon_url },
+        { job_id: job.id, display_order: nextOrder, job_name: job.name, job_slug: job.slug, job_icon_url: job.icon_url, job_app_package_id: job.app_package_id },
       ]);
       setQuery("");
       setResults([]);
@@ -147,6 +147,8 @@ export function FeaturedManager({ initialList }: Props) {
                   id={entry.job_id}
                   name={entry.job_name}
                   iconUrl={entry.job_icon_url}
+                  slug={entry.job_slug}
+                  appPackageId={entry.job_app_package_id}
                 />
               </div>
               <div className="flex items-center gap-1 shrink-0">
@@ -203,7 +205,7 @@ export function FeaturedManager({ initialList }: Props) {
                 return (
                   <div key={job.id} className="flex items-center gap-3 px-3 py-2.5">
                     <div className="flex-1 min-w-0">
-                      <JobAdminCard id={job.id} name={job.name} iconUrl={job.icon_url} />
+                      <JobAdminCard id={job.id} name={job.name} iconUrl={job.icon_url} slug={job.slug} appPackageId={job.app_package_id} />
                     </div>
                     <span className="text-xs text-muted shrink-0">{job.status}</span>
                     <button

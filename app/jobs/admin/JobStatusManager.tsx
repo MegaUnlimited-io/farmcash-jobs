@@ -107,7 +107,7 @@ export function JobStatusManager() {
               className="flex items-center gap-3 p-3 bg-card border border-border rounded-xl"
             >
               <div className="flex-1 min-w-0">
-                <JobAdminCard id={job.id} name={job.name} iconUrl={job.icon_url} />
+                <JobAdminCard id={job.id} name={job.name} iconUrl={job.icon_url} slug={job.slug} appPackageId={job.app_package_id} />
               </div>
 
               <span className="text-[10px] text-muted shrink-0 hidden sm:block">

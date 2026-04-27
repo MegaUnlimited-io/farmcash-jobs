@@ -7,6 +7,7 @@ export interface FeaturedEntry {
   job_name: string;
   job_slug: string;
   job_icon_url: string | null;
+  job_app_package_id: string | null;
 }
 
 export interface JobSearchResult {
@@ -16,6 +17,7 @@ export interface JobSearchResult {
   icon_url: string | null;
   status: JobStatus;
   enriched_at: string | null;
+  app_package_id: string | null;
 }
 
 // All functions here use the service role client (bypasses RLS).
@@ -140,7 +142,7 @@ export async function getFeaturedList(): Promise<FeaturedEntry[]> {
   const jobIds = rows.map((r) => r.job_id);
   const { data: jobs } = await supabase
     .from("jobs")
-    .select("id, name, slug, icon_url")
+    .select("id, name, slug, icon_url, app_package_id")
     .in("id", jobIds);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Row resolves to never with partial select
@@ -155,6 +157,7 @@ export async function getFeaturedList(): Promise<FeaturedEntry[]> {
       job_name: job?.name ?? "Unknown",
       job_slug: job?.slug ?? "",
       job_icon_url: job?.icon_url ?? null,
+      job_app_package_id: job?.app_package_id ?? null,
     };
   });
 }
@@ -164,7 +167,7 @@ export async function searchJobs(query: string): Promise<JobSearchResult[]> {
 
   const { data, error } = await supabase
     .from("jobs")
-    .select("id, name, slug, icon_url, status, enriched_at")
+    .select("id, name, slug, icon_url, status, enriched_at, app_package_id")
     .ilike("name", `%${query}%`)
     .order("name", { ascending: true })
     .limit(10);
