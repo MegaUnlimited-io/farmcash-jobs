@@ -6,6 +6,69 @@ import type { FeaturedEntry, JobSearchResult } from "@/lib/db/admin";
 
 const MAX_SLOTS = 6;
 
+// ── Shared job identity card ─────────────────────────────────────────────────
+
+interface JobAdminCardProps {
+  id: string;
+  name: string;
+  iconUrl: string | null;
+}
+
+function JobAdminCard({ id, name, iconUrl }: JobAdminCardProps) {
+  const [copied, setCopied] = useState(false);
+
+  const copy = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    await navigator.clipboard.writeText(id);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+
+  return (
+    <div className="flex items-center gap-2.5 min-w-0">
+      {iconUrl ? (
+        <Image
+          src={iconUrl}
+          alt=""
+          width={32}
+          height={32}
+          className="rounded-lg shrink-0"
+          unoptimized
+        />
+      ) : (
+        <div className="w-8 h-8 rounded-lg bg-border shrink-0" />
+      )}
+      <div className="min-w-0">
+        <p className="text-sm text-fg font-medium truncate leading-tight">{name}</p>
+        <div className="flex items-center gap-1 mt-0.5">
+          <span className="text-[10px] text-muted font-mono tracking-wide">
+            …{id.slice(-6)}
+          </span>
+          <button
+            onClick={copy}
+            title="Copy full UUID"
+            className="flex items-center justify-center w-4 h-4 rounded text-muted hover:text-fg transition-colors"
+            aria-label="Copy job ID"
+          >
+            {copied ? (
+              <svg viewBox="0 0 12 12" fill="none" className="w-3 h-3 text-primary" stroke="currentColor" strokeWidth="1.5">
+                <path d="M2 6l3 3 5-5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            ) : (
+              <svg viewBox="0 0 12 12" fill="none" className="w-3 h-3" stroke="currentColor" strokeWidth="1.5">
+                <rect x="4" y="4" width="6.5" height="7" rx="1" />
+                <path d="M2.5 8H2a.5.5 0 0 1-.5-.5V1.5A.5.5 0 0 1 2 1h6a.5.5 0 0 1 .5.5V2" strokeLinecap="round" />
+              </svg>
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── FeaturedManager ───────────────────────────────────────────────────────────
+
 interface Props {
   initialList: FeaturedEntry[];
 }
@@ -15,7 +78,7 @@ export function FeaturedManager({ initialList }: Props) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<JobSearchResult[]>([]);
   const [searching, setSearching] = useState(false);
-  const [busy, setBusy] = useState<string | null>(null); // jobId currently mutating
+  const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -108,7 +171,7 @@ export function FeaturedManager({ initialList }: Props) {
 
   return (
     <div className="space-y-4">
-      {/* Slot counter */}
+      {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-semibold uppercase tracking-wider text-muted">Featured Jobs</h2>
         <span className={`text-xs font-medium ${featured.length >= MAX_SLOTS ? "text-yellow-500" : "text-muted"}`}>
@@ -133,19 +196,13 @@ export function FeaturedManager({ initialList }: Props) {
               className="flex items-center gap-3 p-3 bg-card border border-border rounded-xl"
             >
               <span className="text-xs text-muted w-4 text-right shrink-0">{index + 1}</span>
-              {entry.job_icon_url ? (
-                <Image
-                  src={entry.job_icon_url}
-                  alt=""
-                  width={32}
-                  height={32}
-                  className="rounded-lg shrink-0"
-                  unoptimized
+              <div className="flex-1 min-w-0">
+                <JobAdminCard
+                  id={entry.job_id}
+                  name={entry.job_name}
+                  iconUrl={entry.job_icon_url}
                 />
-              ) : (
-                <div className="w-8 h-8 rounded-lg bg-border shrink-0" />
-              )}
-              <span className="text-sm text-fg font-medium flex-1 truncate">{entry.job_name}</span>
+              </div>
               <div className="flex items-center gap-1 shrink-0">
                 <button
                   onClick={() => move(index, -1)}
@@ -189,9 +246,7 @@ export function FeaturedManager({ initialList }: Props) {
               className="w-full bg-card border border-border rounded-xl px-4 py-2.5 text-sm text-fg placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors"
             />
             {searching && (
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted">
-                …
-              </span>
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted">…</span>
             )}
           </div>
 
@@ -201,19 +256,9 @@ export function FeaturedManager({ initialList }: Props) {
                 const alreadyFeatured = featuredIds.has(job.id);
                 return (
                   <div key={job.id} className="flex items-center gap-3 px-3 py-2.5">
-                    {job.icon_url ? (
-                      <Image
-                        src={job.icon_url}
-                        alt=""
-                        width={28}
-                        height={28}
-                        className="rounded-md shrink-0"
-                        unoptimized
-                      />
-                    ) : (
-                      <div className="w-7 h-7 rounded-md bg-border shrink-0" />
-                    )}
-                    <span className="text-sm text-fg flex-1 truncate">{job.name}</span>
+                    <div className="flex-1 min-w-0">
+                      <JobAdminCard id={job.id} name={job.name} iconUrl={job.icon_url} />
+                    </div>
                     <span className="text-xs text-muted shrink-0">{job.status}</span>
                     <button
                       onClick={() => add(job)}
