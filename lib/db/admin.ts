@@ -184,8 +184,8 @@ export async function addFeatured(jobId: string): Promise<{ error?: string }> {
     .from("jobs_featured")
     .select("*", { count: "exact", head: true });
 
-  if ((count ?? 0) >= 6) {
-    return { error: "Max 6 featured slots reached. Remove one first." };
+  if ((count ?? 0) >= 7) {
+    return { error: "Max 7 featured slots reached. Remove one first." };
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Row resolves to never (supabase ≥2.104)
