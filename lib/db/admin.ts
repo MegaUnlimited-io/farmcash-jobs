@@ -5,6 +5,40 @@ import type { CommentStatus, JobComment, Job, PendingComment } from "@/lib/types
 // Cast data from .select() to the expected type — @supabase/supabase-js ≥2.104
 // resolves Row to `never` when the Database generic doesn't fully resolve.
 
+export interface AdminStats {
+  totalJobs: number;
+  enrichedJobs: number;
+  unenrichedJobs: number;
+  pendingComments: number;
+  totalRatings: number;
+}
+
+export async function getAdminStats(): Promise<AdminStats> {
+  const supabase = createServiceClient();
+
+  const [
+    { count: totalJobs },
+    { count: enrichedJobs },
+    { count: unenrichedJobs },
+    { count: pendingComments },
+    { count: totalRatings },
+  ] = await Promise.all([
+    supabase.from("jobs").select("*", { count: "exact", head: true }),
+    supabase.from("jobs").select("*", { count: "exact", head: true }).not("enriched_at", "is", null),
+    supabase.from("jobs").select("*", { count: "exact", head: true }).is("enriched_at", null).not("app_package_id", "is", null),
+    supabase.from("job_comments").select("*", { count: "exact", head: true }).eq("status", "pending"),
+    supabase.from("job_ratings").select("*", { count: "exact", head: true }).eq("is_bot", false),
+  ]);
+
+  return {
+    totalJobs:       totalJobs       ?? 0,
+    enrichedJobs:    enrichedJobs    ?? 0,
+    unenrichedJobs:  unenrichedJobs  ?? 0,
+    pendingComments: pendingComments ?? 0,
+    totalRatings:    totalRatings    ?? 0,
+  };
+}
+
 export async function isAdmin(userId: string): Promise<boolean> {
   const supabase = createServiceClient();
   const { data } = await supabase

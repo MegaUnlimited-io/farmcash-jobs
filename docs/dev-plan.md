@@ -1,5 +1,5 @@
 # FarmCash Jobs — Development Plan
-_Last updated: 2026-04-24 | Status: Phases 0–3 complete ✓. 1,024 offers in DB. Phase 4 in progress._
+_Last updated: 2026-04-27 | Status: Phases 0–9 complete ✓. Admin panel live. Phase 10 in progress._
 
 ## How to use
 - `[ ]` = not started · `[~]` = in progress · `[x]` = done
@@ -207,6 +207,45 @@ _Scripts in `/scripts/`, not part of Next.js app. Does not block Phase 1–8._
 | `AYET_JOBS_ADSLOT_ID` | From AyeT dashboard |
 | `REVALIDATION_SECRET` | **Same value** as Vercel variable |
 | `NEXT_APP_URL` | `https://farmcash-jobs.vercel.app` |
+
+---
+
+## Phase 10 — Admin Panel Expansion
+_Adds curation and moderation tools to the existing `/jobs/admin` panel. Work through items in order — each is self-contained._
+
+- [ ] 10.1 **Stats bar** — counts row at top of admin page: total jobs, enriched jobs, unenriched jobs, pending comments, total ratings. Read-only, no interactivity. Server-fetched on load.
+
+- [ ] 10.2 **Featured jobs manager** — replace SQL-only workflow for `jobs_featured`.
+  - Searchable job picker (query by name) to add a job to featured
+  - Ordered list of current featured jobs with drag-to-reorder or up/down arrows (updates `display_order`)
+  - One-click remove from featured
+  - Max 6 slots enforced (mirrors `getFeaturedJobs()` limit)
+
+- [ ] 10.3 **Job status changer** — searchable job list with inline status dropdown.
+  - Shows: job name, current status, last enriched date
+  - Dropdown: active / partner_removed / blacklisted / seasonal / under_review
+  - On change: PATCH jobs row + call `/api/revalidate?slug={slug}` to bust page cache immediately
+
+- [ ] 10.4 **Manual override editor** — per-job form to set `manual_overrides` JSONB fields.
+  - Fields: name, description, icon_url (text inputs)
+  - Setting a field writes it to `manual_overrides` so the sync won't overwrite it
+  - Clearing a field removes it from `manual_overrides` so sync can manage it again
+  - On save: call `/api/revalidate?slug={slug}`
+
+- [ ] 10.5 **Pin / guide toggle on comments** — extend moderation queue row actions.
+  - Add "Pin" toggle (`is_pinned`) and "Guide" toggle (`is_guide`) alongside approve/reject
+  - Only available on approved comments
+  - Pinned comments appear first in `CommentsList`; guide comments get visual treatment (already in UI types)
+
+- [ ] 10.6 **Cache revalidation panel** — manual cache busting buttons.
+  - "Revalidate jobs listing" → hits `/api/revalidate?tag=jobs-listing`
+  - "Revalidate featured" → hits `/api/revalidate?tag=jobs-featured`
+  - "Revalidate all ratings" → hits `/api/revalidate?tag=ratings-all`
+  - "Revalidate job page" (with slug input) → hits `/api/revalidate?slug={slug}` + `?tag=ratings:{jobId}`
+  - Show success/error toast after each action
+
+### CHECKPOINT J
+> All 6 items verified in production. Featured jobs manageable without touching SQL. Job status changes reflect on live pages within seconds. Manual overrides prevent sync from clobbering curated content. Debug route (`/jobs/api/debug-auth`) deleted.
 
 ---
 

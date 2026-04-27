@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { isAdmin, getPendingComments } from "@/lib/db/admin";
+import { isAdmin, getPendingComments, getAdminStats } from "@/lib/db/admin";
 import { ModerationList } from "./ModerationList";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -28,7 +28,10 @@ async function AdminContent() {
   const adminStatus = await isAdmin(user.id);
   if (!adminStatus) redirect("/jobs");
 
-  const pending = await getPendingComments();
+  const [pending, stats] = await Promise.all([
+    getPendingComments(),
+    getAdminStats(),
+  ]);
 
   return (
     <main className="min-h-screen bg-bg text-fg">
@@ -45,6 +48,23 @@ async function AdminContent() {
       </div>
 
       <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
+
+        {/* ── Stats bar ── */}
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+          {[
+            { label: "Total Jobs",     value: stats.totalJobs },
+            { label: "Enriched",       value: stats.enrichedJobs },
+            { label: "Unenriched",     value: stats.unenrichedJobs },
+            { label: "Pending Review", value: stats.pendingComments },
+            { label: "Human Ratings",  value: stats.totalRatings },
+          ].map(({ label, value }) => (
+            <div key={label} className="bg-card border border-border rounded-xl px-4 py-3">
+              <p className="text-xl font-bold text-fg tabular-nums">{value.toLocaleString()}</p>
+              <p className="text-xs text-muted mt-0.5">{label}</p>
+            </div>
+          ))}
+        </div>
+
         <section>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-semibold uppercase tracking-wider text-muted">
