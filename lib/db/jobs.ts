@@ -57,7 +57,7 @@ export async function getFeaturedJobs(): Promise<Job[]> {
     .from("jobs_featured" as "jobs")
     .select("job_id, display_order")
     .order("display_order", { ascending: true })
-    .limit(6);
+    .limit(7);
 
   if (!featuredError && featured && featured.length > 0) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -77,7 +77,7 @@ export async function getFeaturedJobs(): Promise<Job[]> {
     .eq("status", "active")
     .not("icon_url", "is", null)
     .order("payout_max", { ascending: false })
-    .limit(6);
+    .limit(7);
 
   if (error) {
     console.error("[db/jobs] getFeaturedJobs error:", error.message);

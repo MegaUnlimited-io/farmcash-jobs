@@ -30,6 +30,7 @@ export function JobIcon({ name, iconUrl, size = 64, className = "" }: JobIconPro
       alt={name}
       width={size}
       height={size}
+      style={{ width: size, height: size, minWidth: size }}
       className={`rounded-2xl object-cover ${className}`}
     />
   );

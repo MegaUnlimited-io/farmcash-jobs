@@ -4,7 +4,7 @@ import { useState, useCallback, useRef } from "react";
 import Image from "next/image";
 import type { FeaturedEntry, JobSearchResult } from "@/lib/db/admin";
 
-const MAX_SLOTS = 6;
+const MAX_SLOTS = 7;
 
 // ── Shared job identity card ─────────────────────────────────────────────────
 
@@ -195,7 +195,14 @@ export function FeaturedManager({ initialList }: Props) {
               key={entry.job_id}
               className="flex items-center gap-3 p-3 bg-card border border-border rounded-xl"
             >
-              <span className="text-xs text-muted w-4 text-right shrink-0">{index + 1}</span>
+              <div className="w-16 shrink-0 flex flex-col items-end gap-0.5">
+                <span className="text-xs text-muted">{index + 1}</span>
+                {index === 0 && (
+                  <span className="text-[9px] font-semibold uppercase tracking-wide text-primary leading-none">
+                    Top Pick
+                  </span>
+                )}
+              </div>
               <div className="flex-1 min-w-0">
                 <JobAdminCard
                   id={entry.job_id}
