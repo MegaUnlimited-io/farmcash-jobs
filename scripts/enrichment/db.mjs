@@ -120,11 +120,11 @@ export async function writeEnrichmentResult(jobId, playStoreData, analysis, dryR
   if (updateErr) throw new Error(`jobs update: ${updateErr.message}`);
 
   // ── 4. Upsert bot rating (delete + insert for clean idempotency) ──────────
+  // Delete by is_bot only (not bot_name) so renames/emoji changes don't leave orphaned rows.
   await db
     .from("job_ratings")
     .delete()
     .eq("job_id", jobId)
-    .eq("bot_name", BOT_NAME)
     .eq("is_bot", true);
 
   const { error: ratingErr } = await db.from("job_ratings").insert({
@@ -144,7 +144,6 @@ export async function writeEnrichmentResult(jobId, playStoreData, analysis, dryR
     .from("job_comments")
     .delete()
     .eq("job_id", jobId)
-    .eq("bot_name", BOT_NAME)
     .eq("is_bot", true);
 
   const { error: commentErr } = await db.from("job_comments").insert({

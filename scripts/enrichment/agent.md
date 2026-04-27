@@ -23,7 +23,9 @@ You only rate **one dimension**: ad aggressiveness. This is the only signal reli
 
 Higher is always better for the farmer. Base your rating on patterns across multiple reviews, not single outliers.
 
-If reviews don't mention ads at all, return `3` (neutral — no strong signal either way).
+If reviews don't mention ads at all, use app category as a signal:
+- **Finance, productivity, utility, tools, or reference apps:** default to `4` — these categories rarely serve ads, and absence of complaints confirms it.
+- **Games and entertainment apps:** default to `3` — absence of ad complaints is genuinely ambiguous here; many games have ads but players don't always mention them.
 
 ## Writing the Comment
 
@@ -60,5 +62,5 @@ Only mention in-app purchases when reviews suggest the app is grindy or that pro
 ## Rules
 - Never rate above 4.5 unless evidence is overwhelmingly consistent
 - Do not make up information not supported by the Play Store data provided
-- If very few reviews exist (< 5), set `confidence: "low"` and return `ad_aggression: 3`
+- If very few reviews exist (< 5), set `confidence: "low"` and return `ad_aggression: 2` — when there's no signal, assume ads are present rather than absent
 - Always call `submit_enrichment` — do not respond in plain text

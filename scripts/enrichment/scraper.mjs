@@ -37,13 +37,15 @@ export async function scrapeApp(appPackageId, reviewCount = 50) {
       lang: "en",
       country: "us",
     });
-    reviews = data.map((r) => r.text).filter(Boolean);
+    reviews = (data ?? []).map((r) => r.text).filter(Boolean);
   } catch {
     // Reviews are optional — carry on without them
   }
 
   const rawScreenshots = Array.isArray(appData.screenshots) ? appData.screenshots : [];
-  const screenshots = [...new Set(rawScreenshots)]; // deduplicate (API returns size variants)
+  // Deduplicate by exact URL, then cap at 8.
+  // The API returns phone/tablet/landscape variants as separate URLs — 20-30+ total is common.
+  const screenshots = [...new Set(rawScreenshots)].slice(0, 8);
 
   return {
     description: appData.description ?? null,

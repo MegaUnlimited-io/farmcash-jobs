@@ -33,14 +33,25 @@ interface ExistingJob {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function generateSlug(name: string, existing: Set<string>): string {
-  const base = name
+function generateSlug(name: string, existing: Set<string>, packageId?: string): string {
+  let base = name
     .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/[^a-z0-9\s-]/g, "") // strips non-Latin chars (Korean, Japanese, etc.)
     .trim()
     .replace(/\s+/g, "-")
     .replace(/-+/g, "-")
     .slice(0, 80);
+
+  // Non-Latin names produce an empty base — fall back to package ID
+  if (!base && packageId) {
+    base = packageId
+      .toLowerCase()
+      .replace(/^com\./, "")  // strip leading com.
+      .replace(/\./g, "-")
+      .slice(0, 80);
+  }
+
+  if (!base) base = "job";
 
   if (!existing.has(base)) return base;
   let i = 2;
@@ -205,7 +216,7 @@ export async function upsertOffers(
       if (!existingJob) {
         // New app — INSERT using best offer from current batch as seed data
         if (!canonical) continue; // promoted offer from a previous sync — no display data available
-        const slug = generateSlug(canonical.name, slugSet);
+        const slug = generateSlug(canonical.name, slugSet, packageId);
         slugSet.add(slug);
 
         const { error: insertErr } = await supabase.from("jobs").insert({

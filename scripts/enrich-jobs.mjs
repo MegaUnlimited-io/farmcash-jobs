@@ -24,6 +24,63 @@ import {
   writeEnrichmentResult,
 } from "./enrichment/db.mjs";
 
+// ── Help ──────────────────────────────────────────────────────────────────────
+
+if (process.argv.includes("--help") || process.argv.includes("-h")) {
+  console.log(`
+  Harvest Intel Bot — Enrichment Pipeline
+  ════════════════════════════════════════
+
+  Usage:
+    node --env-file=.env.local scripts/enrich-jobs.mjs [flags]
+
+  Targeting (default: all unenriched jobs up to --limit)
+    --job <uuid>        Target a specific job by DB UUID. Repeatable.
+    --package <id>      Target a specific job by app_package_id. Repeatable.
+
+  Behaviour
+    --force             Re-enrich jobs that already have enriched_at set.
+                        Deletes and rewrites bot rating + comment for targeted jobs.
+                        Required when using --job or --package on already-enriched jobs.
+    --dry-run           Print what would be written without touching the DB.
+
+  Limits & tuning
+    --limit N           Max number of jobs to process (default: 20).
+    --reviews N         Play Store reviews to fetch per job (default: 50).
+    --model <id>        Claude model ID to use.
+                        Default: env ENRICHMENT_MODEL or claude-haiku-4-5-20251001
+    --delay N           Milliseconds to wait between jobs (default: 1500).
+
+  Examples
+    # Dry-run on 3 unenriched jobs to test output
+    node --env-file=.env.local scripts/enrich-jobs.mjs --dry-run --limit 3
+
+    # Enrich all unenriched jobs (up to 100)
+    node --env-file=.env.local scripts/enrich-jobs.mjs --limit 100
+
+    # Re-enrich a specific job by package ID
+    node --env-file=.env.local scripts/enrich-jobs.mjs --package com.example.app --force
+
+    # Re-enrich multiple specific jobs
+    node --env-file=.env.local scripts/enrich-jobs.mjs \\
+      --package com.example.one --package com.example.two --force
+
+    # Re-enrich a job by DB UUID
+    node --env-file=.env.local scripts/enrich-jobs.mjs --job <uuid> --force
+
+    # Use Sonnet for higher quality output on a specific job
+    node --env-file=.env.local scripts/enrich-jobs.mjs \\
+      --package com.example.app --force --model claude-sonnet-4-6
+
+  Environment variables (.env.local)
+    NEXT_PUBLIC_SUPABASE_URL      Required
+    SUPABASE_SERVICE_ROLE_KEY     Required
+    ANTHROPIC_API_KEY             Required
+    ENRICHMENT_MODEL              Optional — overridden by --model flag
+`);
+  process.exit(0);
+}
+
 // ── Parse CLI args ────────────────────────────────────────────────────────────
 
 const args = process.argv.slice(2);

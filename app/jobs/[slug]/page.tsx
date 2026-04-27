@@ -202,7 +202,7 @@ async function JobDetailContent({ params }: Props) {
           {/* PRIMARY CTA */}
           {showCTA && (
             <div className="w-full max-w-xs">
-              <CTAButton />
+              <CTAButton jobName={job.name} jobSlug={job.slug} />
             </div>
           )}
         </div>
