@@ -86,6 +86,22 @@ export async function getFeaturedJobs(): Promise<Job[]> {
   return data ?? [];
 }
 
+export async function getAllRatingsSummaries(): Promise<JobRatingsSummary[]> {
+  cacheTag("ratings-all");
+  cacheLife("hours");
+
+  const supabase = createAnonClient();
+  const { data, error } = await supabase
+    .from("job_ratings_summary")
+    .select("*");
+
+  if (error) {
+    console.error("[db/jobs] getAllRatingsSummaries error:", error.message);
+    return [];
+  }
+  return data ?? [];
+}
+
 export async function getRatingsSummary(
   jobId: string
 ): Promise<JobRatingsSummary | null> {
