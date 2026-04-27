@@ -18,10 +18,10 @@ export function CTAButton({ jobName, jobSlug }: Props) {
   const [visible, setVisible] = useState(false);
 
   function handleClick() {
-    // Push to GTM dataLayer — triggers "cta_click" custom event in GTM/GA4
+    // Push to GTM dataLayer — triggers "jobs_cta_click" custom event in GTM/GA4
     window.dataLayer = window.dataLayer ?? [];
     window.dataLayer.push({
-      event: "cta_click",
+      event: "jobs_cta_click",
       job_name: jobName,
       job_slug: jobSlug,
     });
