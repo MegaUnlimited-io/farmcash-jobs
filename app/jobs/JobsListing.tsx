@@ -59,9 +59,9 @@ export function JobsListing({ jobs, featured, ratingsById }: Props) {
           </div>
 
           {/* Search — focal point */}
-          <div className="relative flex items-center gap-2 bg-white/95 rounded-xl px-4 py-3 shadow-sm">
+          <div className="flex items-center gap-2 bg-white/95 focus-within:bg-white rounded-xl px-4 py-3 shadow-sm transition-colors">
             <svg
-              className="w-4 h-4 text-muted shrink-0"
+              className="w-4 h-4 text-neutral-400 shrink-0"
               fill="none"
               stroke="currentColor"
               strokeWidth={2}
@@ -71,11 +71,11 @@ export function JobsListing({ jobs, featured, ratingsById }: Props) {
               <path d="m21 21-4.35-4.35" />
             </svg>
             <input
-              type="search"
+              type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={`Search ${jobs.length.toLocaleString()} offers…`}
-              className="flex-1 bg-transparent text-fg text-sm outline-none placeholder:text-muted min-w-0"
+              className="flex-1 bg-transparent text-neutral-900 caret-neutral-900 text-sm outline-none placeholder:text-neutral-400 min-w-0"
               autoComplete="off"
               autoCorrect="off"
               spellCheck={false}
@@ -83,7 +83,7 @@ export function JobsListing({ jobs, featured, ratingsById }: Props) {
             {query && (
               <button
                 onClick={() => setQuery("")}
-                className="text-muted hover:text-fg transition-colors shrink-0 text-base leading-none"
+                className="text-neutral-400 hover:text-neutral-700 transition-colors shrink-0 text-base leading-none"
                 aria-label="Clear search"
               >
                 ✕
