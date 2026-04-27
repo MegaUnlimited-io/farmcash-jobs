@@ -56,7 +56,8 @@ export async function generateStaticParams() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data } = await (supabase.from("jobs") as any)
     .select("slug")
-    .neq("status", "under_review");
+    .neq("status", "under_review")
+    .neq("status", "blacklisted");
   return ((data ?? []) as Array<{ slug: string }>).map((j) => ({ slug: j.slug }));
 }
 
@@ -72,6 +73,9 @@ async function JobDetailContent({ params }: Props) {
   const { slug } = await params;
   const job = await getJobBySlug(slug);
   if (!job) notFound();
+  // Blacklisted jobs are fully de-listed — serve 404 so crawlers deindex them.
+  // Revalidation on status change brings the page back if set to active.
+  if (job.status === "blacklisted") notFound();
 
   const [summary, supabase] = await Promise.all([
     getRatingsSummary(job.id),
@@ -87,7 +91,6 @@ async function JobDetailContent({ params }: Props) {
 
   const showCTA = job.status === "active";
   const isRemoved = job.status === "partner_removed";
-  const isBlacklisted = job.status === "blacklisted";
   const hasRatings = summary && summary.total_ratings > 0;
 
   const description =
@@ -140,11 +143,6 @@ async function JobDetailContent({ params }: Props) {
       <div className="max-w-2xl mx-auto px-4 py-8 space-y-5">
 
         {/* Status notices */}
-        {isBlacklisted && (
-          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 text-sm text-red-700 dark:text-red-400">
-            <strong>Not Recommended</strong> — This offer has been flagged by the FarmCash community.
-          </div>
-        )}
         {isRemoved && (
           <div className="bg-gray-50 dark:bg-gray-800/50 border border-border rounded-xl p-4 text-sm text-muted">
             This offer is no longer available, but community ratings remain for reference.

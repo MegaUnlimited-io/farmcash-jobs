@@ -199,7 +199,7 @@ Never invert this scale in UI or aggregation logic.
 |---|---|
 | `active` | Full page, CTA shown |
 | `partner_removed` | Page stays up, CTA hidden, notice shown |
-| `blacklisted` | Page stays up, clearly labelled, no CTA |
+| `blacklisted` | Returns 404 — excluded from listing, sitemap, and static params. Restores automatically if set back to active. |
 | `seasonal` | Page stays up, note shown |
 | `under_review` | Hidden from listing, page still accessible by direct URL |
 

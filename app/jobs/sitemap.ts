@@ -6,7 +6,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: jobs } = await (supabase.from("jobs") as any)
     .select("slug, updated_at")
-    .neq("status", "under_review");
+    .neq("status", "under_review")
+    .neq("status", "blacklisted");
 
   const jobUrls: MetadataRoute.Sitemap = ((jobs ?? []) as Array<{ slug: string; updated_at: string }>).map((job) => ({
     url: `https://farmcash.app/jobs/${job.slug}`,

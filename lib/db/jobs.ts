@@ -17,6 +17,7 @@ export async function getJobs(): Promise<Job[]> {
     .from("jobs")
     .select("*")
     .neq("status", "under_review")
+    .neq("status", "blacklisted")
     .order("payout_max", { ascending: false });
 
   if (error) {
