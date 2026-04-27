@@ -1,7 +1,8 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { isAdmin, getPendingComments, getAdminStats } from "@/lib/db/admin";
+import { isAdmin, getPendingComments, getAdminStats, getFeaturedList } from "@/lib/db/admin";
 import { ModerationList } from "./ModerationList";
+import { FeaturedManager } from "./FeaturedManager";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -28,9 +29,10 @@ async function AdminContent() {
   const adminStatus = await isAdmin(user.id);
   if (!adminStatus) redirect("/jobs");
 
-  const [pending, stats] = await Promise.all([
+  const [pending, stats, featuredList] = await Promise.all([
     getPendingComments(),
     getAdminStats(),
+    getFeaturedList(),
   ]);
 
   return (
@@ -64,6 +66,11 @@ async function AdminContent() {
             </div>
           ))}
         </div>
+
+        {/* ── Featured jobs ── */}
+        <section className="bg-card border border-border rounded-xl p-4">
+          <FeaturedManager initialList={featuredList} />
+        </section>
 
         <section>
           <div className="flex items-center justify-between mb-3">

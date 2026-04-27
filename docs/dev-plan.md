@@ -213,9 +213,9 @@ _Scripts in `/scripts/`, not part of Next.js app. Does not block Phase 1–8._
 ## Phase 10 — Admin Panel Expansion
 _Adds curation and moderation tools to the existing `/jobs/admin` panel. Work through items in order — each is self-contained._
 
-- [ ] 10.1 **Stats bar** — counts row at top of admin page: total jobs, enriched jobs, unenriched jobs, pending comments, total ratings. Read-only, no interactivity. Server-fetched on load.
+- [x] 10.1 **Stats bar** — counts row at top of admin page: total jobs, enriched jobs, unenriched jobs, pending comments, total ratings. Read-only, no interactivity. Server-fetched on load.
 
-- [ ] 10.2 **Featured jobs manager** — replace SQL-only workflow for `jobs_featured`.
+- [x] 10.2 **Featured jobs manager** — replace SQL-only workflow for `jobs_featured`.
   - Searchable job picker (query by name) to add a job to featured
   - Ordered list of current featured jobs with drag-to-reorder or up/down arrows (updates `display_order`)
   - One-click remove from featured
