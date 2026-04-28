@@ -6,6 +6,7 @@ import { ApprovedCommentsList } from "./ApprovedCommentsList";
 import { FeaturedManager } from "./FeaturedManager";
 import { JobStatusManager } from "./JobStatusManager";
 import { ManualOverrideEditor } from "./ManualOverrideEditor";
+import { CachePanel } from "./CachePanel";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -104,6 +105,11 @@ async function AdminContent() {
         </section>
 
         <ApprovedCommentsList comments={recentApproved} />
+
+        {/* ── Cache revalidation ── */}
+        <section className="bg-card border border-border rounded-xl p-4">
+          <CachePanel />
+        </section>
       </div>
     </main>
   );

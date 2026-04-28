@@ -237,7 +237,7 @@ _Adds curation and moderation tools to the existing `/jobs/admin` panel. Work th
   - Only available on approved comments
   - Pinned comments appear first in `CommentsList`; guide comments get visual treatment (already in UI types)
 
-- [ ] 10.6 **Cache revalidation panel** — manual cache busting buttons.
+- [x] 10.6 **Cache revalidation panel** — manual cache busting buttons.
   - "Revalidate jobs listing" → hits `/api/revalidate?tag=jobs-listing`
   - "Revalidate featured" → hits `/api/revalidate?tag=jobs-featured`
   - "Revalidate all ratings" → hits `/api/revalidate?tag=ratings-all`
