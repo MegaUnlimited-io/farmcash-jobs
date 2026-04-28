@@ -22,22 +22,23 @@ export async function scrapeApp(appPackageId, reviewCount = 50) {
   try {
     appData = await gplay.app({ appId: appPackageId, lang: "en", country: "us" });
   } catch (err) {
-    if (err.message?.includes("404") || err.message?.includes("not found")) {
-      return null;
-    }
-    throw err;
+    // Any error here means we can't get Play Store data — return null so the
+    // pipeline enriches with AI only (no crash). Log the real reason for debugging.
+    console.warn(`\n    [scraper] ${appPackageId}: ${err.message}`);
+    return null;
   }
 
   let reviews = [];
   try {
-    const { data } = await gplay.reviews({
+    const result = await gplay.reviews({
       appId: appPackageId,
       num: reviewCount,
       sort: gplay.sort.HELPFULNESS,
       lang: "en",
       country: "us",
     });
-    reviews = (data ?? []).map((r) => r.text).filter(Boolean);
+    const data = Array.isArray(result?.data) ? result.data : [];
+    reviews = data.map((r) => r?.text).filter(Boolean);
   } catch {
     // Reviews are optional — carry on without them
   }

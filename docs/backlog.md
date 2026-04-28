@@ -101,6 +101,34 @@ Gate rating submission on having completed at least 1 paid task (seeds > 0) for 
 
 ---
 
+### B-14 · Task Payouts Display — Seeds / USD / Off
+CPE job detail pages show a task list (`cpe_tasks`). Add configurable payout display per task with three modes, toggled by the user via a small control on the detail page (persisted in localStorage — no account required).
+
+- **OFF** — task names only, no payout figures shown. Clean, simple.
+- **Seeds** — shows `payout_seeds` per task. Already stored in `cpe_tasks[].payout_seeds`.
+- **$** — shows USD equivalent per task. Requires a seeds→USD conversion rate.
+
+**Payout range:**
+Task payouts may vary across partners or offer variants for the same app. The display should show a range (`min–max`) when multiple values exist for the same task type, rather than a single figure that may not match what a user sees in-app. This requires deciding whether to store per-task ranges at sync time or compute them on read.
+
+- **Data model questions to resolve before building:**
+  - Is `payout_seeds` on a task always a flat value, or does AyeT return a range? (Check AyeT API response.)
+  - Seeds→USD rate: is this a fixed global constant, or does it vary per user/tier? Currently `payout_amount` (USD) and `seeds_amount` (seeds) exist at the offer level — the ratio between them is the exchange rate. This could be derived per offer rather than hardcoded.
+  - Should the user preference (seeds/$/ off) be global (one setting for all job pages) or per-job?
+
+- **Current state:** `cpe_tasks[].payout_seeds` already populated by sync for CPE jobs. `Job.payout_min` / `payout_max` exist at job level but not per-task. USD equivalent not stored at task level.
+
+- **Implementation sketch:**
+  1. Add a `PayoutToggle` client component to the job detail page (Seeds / $ / Off pill selector)
+  2. Store selection in `localStorage` under `jobs_payout_display`
+  3. Conditionally render payout figures in the task list based on the setting
+  4. For USD: derive rate from `offer.payout_amount / offer.seeds_amount` at sync time and store on the task or job record
+
+- **Depends on:** Nothing blocking — can be built independently. Resolve data model questions first.
+- **Complexity:** Low-Medium (UI is simple; the data model question around ranges is the nuance)
+
+---
+
 ## Priority: Lower / Exploratory
 
 ### B-09 · Thumbs Up / Down on Comments
