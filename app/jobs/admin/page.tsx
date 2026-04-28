@@ -4,6 +4,7 @@ import { isAdmin, getPendingComments, getAdminStats, getFeaturedList } from "@/l
 import { ModerationList } from "./ModerationList";
 import { FeaturedManager } from "./FeaturedManager";
 import { JobStatusManager } from "./JobStatusManager";
+import { ManualOverrideEditor } from "./ManualOverrideEditor";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -76,6 +77,11 @@ async function AdminContent() {
         {/* ── Job status ── */}
         <section className="bg-card border border-border rounded-xl p-4">
           <JobStatusManager />
+        </section>
+
+        {/* ── Manual overrides ── */}
+        <section className="bg-card border border-border rounded-xl p-4">
+          <ManualOverrideEditor />
         </section>
 
         <section>

@@ -226,7 +226,7 @@ _Adds curation and moderation tools to the existing `/jobs/admin` panel. Work th
   - Dropdown: active / partner_removed / blacklisted / seasonal / under_review
   - On change: PATCH jobs row + call `/api/revalidate?slug={slug}` to bust page cache immediately
 
-- [ ] 10.4 **Manual override editor** — per-job form to set `manual_overrides` JSONB fields.
+- [x] 10.4 **Manual override editor** — per-job form to set `manual_overrides` JSONB fields.
   - Fields: name, description, icon_url (text inputs)
   - Setting a field writes it to `manual_overrides` so the sync won't overwrite it
   - Clearing a field removes it from `manual_overrides` so sync can manage it again

@@ -18,6 +18,8 @@ export interface JobSearchResult {
   status: JobStatus;
   enriched_at: string | null;
   app_package_id: string | null;
+  description: string | null;
+  manual_overrides: Record<string, string>;
 }
 
 // All functions here use the service role client (bypasses RLS).
@@ -167,7 +169,7 @@ export async function searchJobs(query: string): Promise<JobSearchResult[]> {
 
   const { data, error } = await supabase
     .from("jobs")
-    .select("id, name, slug, icon_url, status, enriched_at, app_package_id")
+    .select("id, name, slug, icon_url, status, enriched_at, app_package_id, description, manual_overrides")
     .ilike("name", `%${query}%`)
     .order("name", { ascending: true })
     .limit(10);
@@ -264,6 +266,41 @@ export async function updateJobStatus(
   if (error) {
     console.error("[db/admin] updateJobStatus error:", error.message);
     return { error: "Failed to update job status" };
+  }
+
+  return { slug };
+}
+
+export async function updateManualOverrides(
+  jobId: string,
+  overrides: { name?: string; description?: string; icon_url?: string }
+): Promise<{ slug: string } | { error: string }> {
+  const supabase = createServiceClient();
+
+  const { data: job } = await supabase
+    .from("jobs")
+    .select("slug")
+    .eq("id", jobId)
+    .single();
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- partial select Row issue
+  const slug = (job as any)?.slug as string | undefined;
+  if (!slug) return { error: "Job not found" };
+
+  // Only persist keys that have a non-empty value. Empty string = let sync manage it.
+  const next: Record<string, string> = {};
+  if (overrides.name?.trim())        next.name        = overrides.name.trim();
+  if (overrides.description?.trim()) next.description = overrides.description.trim();
+  if (overrides.icon_url?.trim())    next.icon_url    = overrides.icon_url.trim();
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Update Row resolves to never
+  const { error } = await (supabase.from("jobs") as any)
+    .update({ manual_overrides: next })
+    .eq("id", jobId);
+
+  if (error) {
+    console.error("[db/admin] updateManualOverrides error:", error.message);
+    return { error: "Failed to update overrides" };
   }
 
   return { slug };
