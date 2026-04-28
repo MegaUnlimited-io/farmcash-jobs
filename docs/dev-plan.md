@@ -232,7 +232,7 @@ _Adds curation and moderation tools to the existing `/jobs/admin` panel. Work th
   - Clearing a field removes it from `manual_overrides` so sync can manage it again
   - On save: call `/api/revalidate?slug={slug}`
 
-- [ ] 10.5 **Pin / guide toggle on comments** — extend moderation queue row actions.
+- [x] 10.5 **Pin / guide toggle on comments** — extend moderation queue row actions.
   - Add "Pin" toggle (`is_pinned`) and "Guide" toggle (`is_guide`) alongside approve/reject
   - Only available on approved comments
   - Pinned comments appear first in `CommentsList`; guide comments get visual treatment (already in UI types)

@@ -107,6 +107,61 @@ export async function getPendingComments(): Promise<PendingComment[]> {
   }));
 }
 
+export async function getRecentApprovedComments(): Promise<PendingComment[]> {
+  const supabase = createServiceClient();
+
+  const { data: raw, error } = await supabase
+    .from("job_comments")
+    .select("*")
+    .eq("status", "approved")
+    .order("created_at", { ascending: false })
+    .limit(30);
+
+  if (error) {
+    console.error("[db/admin] getRecentApprovedComments error:", error.message);
+    return [];
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- supabase ≥2.104 Row resolves to never
+  const comments = (raw ?? []) as JobComment[];
+  if (comments.length === 0) return [];
+
+  const jobIds = [...new Set(comments.map((c) => c.job_id))];
+  const { data: rawJobs } = await supabase
+    .from("jobs")
+    .select("id, name, slug")
+    .in("id", jobIds);
+
+  type JobSummary = Pick<Job, "id" | "name" | "slug">;
+  const jobMap = new Map(
+    ((rawJobs ?? []) as JobSummary[]).map((j) => [j.id, { name: j.name, slug: j.slug }])
+  );
+
+  return comments.map((c) => ({
+    ...c,
+    job_name: jobMap.get(c.job_id)?.name ?? "Unknown",
+    job_slug: jobMap.get(c.job_id)?.slug ?? "",
+  }));
+}
+
+export async function toggleCommentFlag(
+  commentId: string,
+  field: "is_pinned" | "is_guide",
+  value: boolean
+): Promise<void> {
+  const supabase = createServiceClient();
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Update Row resolves to never
+  const { error } = await (supabase.from("job_comments") as any)
+    .update({ [field]: value })
+    .eq("id", commentId);
+
+  if (error) {
+    console.error("[db/admin] toggleCommentFlag error:", error.message);
+    throw new Error(`Failed to update ${field}`);
+  }
+}
+
 export async function moderateComment(
   commentId: string,
   status: Extract<CommentStatus, "approved" | "rejected">

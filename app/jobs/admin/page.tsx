@@ -1,7 +1,8 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { isAdmin, getPendingComments, getAdminStats, getFeaturedList } from "@/lib/db/admin";
+import { isAdmin, getPendingComments, getAdminStats, getFeaturedList, getRecentApprovedComments } from "@/lib/db/admin";
 import { ModerationList } from "./ModerationList";
+import { ApprovedCommentsList } from "./ApprovedCommentsList";
 import { FeaturedManager } from "./FeaturedManager";
 import { JobStatusManager } from "./JobStatusManager";
 import { ManualOverrideEditor } from "./ManualOverrideEditor";
@@ -31,10 +32,11 @@ async function AdminContent() {
   const adminStatus = await isAdmin(user.id);
   if (!adminStatus) redirect("/jobs");
 
-  const [pending, stats, featuredList] = await Promise.all([
+  const [pending, stats, featuredList, recentApproved] = await Promise.all([
     getPendingComments(),
     getAdminStats(),
     getFeaturedList(),
+    getRecentApprovedComments(),
   ]);
 
   return (
@@ -100,6 +102,8 @@ async function AdminContent() {
             <ModerationList comments={pending} />
           )}
         </section>
+
+        <ApprovedCommentsList comments={recentApproved} />
       </div>
     </main>
   );
