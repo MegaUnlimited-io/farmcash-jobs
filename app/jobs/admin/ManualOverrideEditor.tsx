@@ -19,9 +19,9 @@ interface OverrideFormProps {
 
 function OverrideForm({ job, onSaved }: OverrideFormProps) {
   const [values, setValues] = useState<Record<OverrideKey, string>>({
-    name:        job.manual_overrides?.name        ?? "",
-    description: job.manual_overrides?.description ?? "",
-    icon_url:    job.manual_overrides?.icon_url    ?? "",
+    name:        job.manual_overrides?.name        ?? job.name        ?? "",
+    description: job.manual_overrides?.description ?? job.description ?? "",
+    icon_url:    job.manual_overrides?.icon_url    ?? job.icon_url    ?? "",
   });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -63,7 +63,6 @@ function OverrideForm({ job, onSaved }: OverrideFormProps) {
 
       {FIELDS.map(({ key, label, multiline }) => {
         const isLocked = lockedKeys.has(key);
-        const liveValue = key === "name" ? job.name : key === "icon_url" ? job.icon_url : job.description;
         return (
           <div key={key} className="space-y-1">
             <div className="flex items-center gap-2">
@@ -76,16 +75,11 @@ function OverrideForm({ job, onSaved }: OverrideFormProps) {
                 <span className="text-[9px] uppercase tracking-wide text-muted/60">Sync managed</span>
               )}
             </div>
-            {liveValue && !isLocked && (
-              <p className="text-[10px] text-muted/70 italic truncate">
-                Current: {liveValue}
-              </p>
-            )}
             {multiline ? (
               <textarea
                 value={values[key]}
                 onChange={(e) => setValues((v) => ({ ...v, [key]: e.target.value }))}
-                placeholder={`Override ${label.toLowerCase()}… (empty = let sync manage)`}
+                placeholder="Empty = let sync manage"
                 rows={3}
                 className="w-full bg-card border border-border rounded-lg px-3 py-2 text-xs text-fg placeholder:text-muted/50 focus:outline-none focus:border-primary/50 transition-colors resize-none"
               />
@@ -94,7 +88,7 @@ function OverrideForm({ job, onSaved }: OverrideFormProps) {
                 type="text"
                 value={values[key]}
                 onChange={(e) => setValues((v) => ({ ...v, [key]: e.target.value }))}
-                placeholder={`Override ${label.toLowerCase()}… (empty = let sync manage)`}
+                placeholder="Empty = let sync manage"
                 className="w-full bg-card border border-border rounded-lg px-3 py-2 text-xs text-fg placeholder:text-muted/50 focus:outline-none focus:border-primary/50 transition-colors"
               />
             )}
