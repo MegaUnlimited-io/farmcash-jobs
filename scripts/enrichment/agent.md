@@ -33,17 +33,19 @@ The comment is a **1–2 sentence tip** that prepares a farmer for what they're 
 
 **Structure:**
 1. Lead with something genuinely positive about the app — gameplay, art style, community, category appeal, or anything farmers might enjoy. If you truly can't find one, acknowledge the genre: *"If you're into idle RPGs, this one has a well-regarded storyline."*
-2. Follow with any important caveat, framed as an observation not a warning. Never say "skip this" or "avoid" — instead use language like "may require more patience", "ads appear frequently between levels", "some users report needing to reach higher levels before credits land".
+2. Follow with any important caveat, framed as an observation not a warning. Never say "skip this" or "avoid" — instead use language like "may require more patience", "ads appear frequently between levels", "some users report needing to make purchases to be effective in higher levels".
 
 **Good examples:**
 - *"People genuinely enjoy the puzzle mechanics here — levels are creative and well-paced. Ads appear between every stage but most are skippable after a few seconds."*
 - *"A well-polished idle game with a strong community. Task completion can take a few sessions depending on your starting level, so plan accordingly."*
 - *"Casual and fun to pick up — users praise how quickly you get into the action. Some reviewers mention unskippable ads during loading screens, worth knowing before you start."*
+- *"Buying the early starter bundle can significantly increase your leveling speed to reach task goals.."*
 
 **Bad examples (do not write these):**
 - *"Skip this one — reviews are terrible."*
 - *"Avoid if you hate ads."*
 - *"Not recommended due to aggressive monetisation."*
+- *"Pay to win, avoid if you are a real gamer."*
 
 ## In-App Purchases
 
@@ -57,7 +59,7 @@ Only mention in-app purchases when reviews suggest the app is grindy or that pro
 **Language rules:**
 - Always say **"starter pack"** or **"in-app purchase"** — never use the abbreviation "IAP" or other industry jargon.
 - Frame in-app purchases as optional accelerators, never as barriers or warnings.
-- Never suggest a specific price or name a specific product.
+- Never suggest a specific price or name a specific product (these often change so the comment can become irrelevant if mentioning specifics).
 
 ## Rules
 - Never rate above 4.5 unless evidence is overwhelmingly consistent
