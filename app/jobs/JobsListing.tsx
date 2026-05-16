@@ -9,19 +9,42 @@ import { StarRating } from "@/components/StarRating";
 import { AuthButton } from "@/components/AuthButton";
 import type { Job, JobRatingsSummary } from "@/lib/types";
 
+const NEW_JOBS_PREVIEW = 6;
+
 interface Props {
   jobs: Job[];
   featured: Job[];
+  newJobs: Job[];
   ratingsById: Record<string, JobRatingsSummary>;
 }
 
-export function JobsListing({ jobs, featured, ratingsById }: Props) {
+export function JobsListing({ jobs, featured, newJobs, ratingsById }: Props) {
   const [query, setQuery] = useState("");
+  const [newJobsExpanded, setNewJobsExpanded] = useState(false);
 
   const featuredIds = useMemo(() => new Set(featured.map((j) => j.id)), [featured]);
+
+  // New jobs: exclude featured, then split into preview and overflow
+  const newJobsFiltered = useMemo(
+    () => newJobs.filter((j) => !featuredIds.has(j.id)),
+    [newJobs, featuredIds]
+  );
+  const newJobsPreview = useMemo(
+    () => newJobsFiltered.slice(0, NEW_JOBS_PREVIEW),
+    [newJobsFiltered]
+  );
+  const newJobsVisible = newJobsExpanded ? newJobsFiltered : newJobsPreview;
+  const hasMoreNewJobs = newJobsFiltered.length > NEW_JOBS_PREVIEW;
+
   const hero = featured[0] ?? null;
   const featuredRest = useMemo(() => featured.slice(1), [featured]);
-  const rest = useMemo(() => jobs.filter((j) => !featuredIds.has(j.id)), [jobs, featuredIds]);
+
+  // All offers excludes both featured and new jobs
+  const newJobIds = useMemo(() => new Set(newJobs.map((j) => j.id)), [newJobs]);
+  const rest = useMemo(
+    () => jobs.filter((j) => !featuredIds.has(j.id) && !newJobIds.has(j.id)),
+    [jobs, featuredIds, newJobIds]
+  );
 
   // Client-side search across all jobs
   const searchResults = useMemo(() => {
@@ -211,6 +234,50 @@ export function JobsListing({ jobs, featured, ratingsById }: Props) {
                     );
                   })}
                 </div>
+              </section>
+            )}
+
+            {/* Newly Added */}
+            {newJobsVisible.length > 0 && (
+              <section>
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted mb-3">
+                  Newly Added
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  {newJobsVisible.map((job) => {
+                    const rating = ratingsById[job.id];
+                    return (
+                      <Link
+                        key={job.id}
+                        href={`/jobs/${job.slug}`}
+                        className="flex items-center gap-3 p-4 rounded-xl bg-card border border-border hover:border-primary/50 transition-colors"
+                      >
+                        <JobIcon name={job.name} iconUrl={job.icon_url} size={48} className="shrink-0" />
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold truncate text-fg">{job.name}</p>
+                          <div className="mt-0.5">
+                            <SeedsChip seeds={job.payout_max} className="text-xs" />
+                          </div>
+                          {rating?.avg_overall != null && rating.total_ratings > 0 && (
+                            <span className="text-xs text-secondary font-medium tabular-nums">
+                              ★ {rating.avg_overall.toFixed(1)}
+                            </span>
+                          )}
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+                {hasMoreNewJobs && (
+                  <button
+                    onClick={() => setNewJobsExpanded((v) => !v)}
+                    className="mt-3 w-full text-xs font-semibold text-primary hover:text-primary/80 transition-colors py-2 rounded-xl border border-border hover:border-primary/40 bg-card"
+                  >
+                    {newJobsExpanded
+                      ? "Show less"
+                      : `Show all ${newJobsFiltered.length} newly added`}
+                  </button>
+                )}
               </section>
             )}
 
