@@ -87,6 +87,35 @@ export async function getFeaturedJobs(): Promise<Job[]> {
   return data ?? [];
 }
 
+export async function getNewJobs(): Promise<Job[]> {
+  cacheTag("jobs-new");
+  cacheLife("hours");
+
+  const supabase = createAnonClient();
+
+  // Fetch a window of recent active jobs to find the most recent batch date.
+  // Jobs are added in sync batches so they share the same created_at date.
+  const { data, error } = await supabase
+    .from("jobs")
+    .select("*")
+    .eq("status", "active")
+    .order("created_at", { ascending: false })
+    .limit(50)
+    .returns<Job[]>();
+
+  if (error) {
+    console.error("[db/jobs] getNewJobs error:", error.message);
+    return [];
+  }
+  if (!data || data.length === 0) return [];
+
+  // Determine the most recent batch date (YYYY-MM-DD) from the first result.
+  const mostRecentDate = data[0].created_at.slice(0, 10);
+
+  // Return only jobs that share that date.
+  return data.filter((j) => j.created_at.slice(0, 10) === mostRecentDate);
+}
+
 export async function getAllRatingsSummaries(): Promise<JobRatingsSummary[]> {
   cacheTag("ratings-all");
   cacheLife("hours");

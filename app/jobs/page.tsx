@@ -1,4 +1,4 @@
-import { getJobs, getFeaturedJobs, getAllRatingsSummaries } from "@/lib/db/jobs";
+import { getJobs, getFeaturedJobs, getNewJobs, getAllRatingsSummaries } from "@/lib/db/jobs";
 import { JobsListing } from "./JobsListing";
 import type { Metadata } from "next";
 
@@ -24,13 +24,14 @@ export const metadata: Metadata = {
 };
 
 export default async function JobsPage() {
-  const [jobs, featured, summaries] = await Promise.all([
+  const [jobs, featured, newJobs, summaries] = await Promise.all([
     getJobs(),
     getFeaturedJobs(),
+    getNewJobs(),
     getAllRatingsSummaries(),
   ]);
 
   const ratingsById = Object.fromEntries(summaries.map((s) => [s.job_id, s]));
 
-  return <JobsListing jobs={jobs} featured={featured} ratingsById={ratingsById} />;
+  return <JobsListing jobs={jobs} featured={featured} newJobs={newJobs} ratingsById={ratingsById} />;
 }
