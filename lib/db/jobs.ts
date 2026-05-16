@@ -100,7 +100,8 @@ export async function getNewJobs(): Promise<Job[]> {
     .select("*")
     .eq("status", "active")
     .order("created_at", { ascending: false })
-    .limit(50);
+    .limit(50)
+    .returns<Job[]>();
 
   if (error) {
     console.error("[db/jobs] getNewJobs error:", error.message);
